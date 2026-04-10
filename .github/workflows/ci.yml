@@ -39,11 +39,16 @@ jobs:
           FIREBASE_OPTIONS_STAGING: ${{ secrets.FIREBASE_OPTIONS_STAGING }}
           FIREBASE_OPTIONS_PROD: ${{ secrets.FIREBASE_OPTIONS_PROD }}
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          GOOGLE_SERVICES_JSON_PROD: ${{ secrets.GOOGLE_SERVICES_JSON_PROD }}
         run: |
           echo "$FIREBASE_OPTIONS_DEV" | base64 --decode > lib/firebase_options_dev.dart
           echo "$FIREBASE_OPTIONS_STAGING" | base64 --decode > lib/firebase_options_staging.dart
           echo "$FIREBASE_OPTIONS_PROD" | base64 --decode > lib/firebase_options_prod.dart
-          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "$GOOGLE_SERVICES_JSON_PROD" | base64 --decode > android/app/google-services.json
+          else
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
+          fi
 
       - name: Install dependencies
         working-directory: stanag_app
@@ -60,3 +65,8 @@ jobs:
       - name: Build APK (dev flavour)
         working-directory: stanag_app
         run: flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
+
+      - name: Build APK (prod flavour)
+        working-directory: stanag_app
+        if: github.ref == 'refs/heads/main'
+        run: flutter build apk --flavor prod -t lib/main.dart --dart-define=FLAVOR=prod
