@@ -28,23 +28,20 @@ jobs:
           git clone https://github.com/flutter/flutter.git --branch stable --depth 1 ~/flutter
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
-      - name: Debug PATH
-        run: |
-          echo "PATH: $PATH"
-          echo "HOME: $HOME"
-          which flutter || echo "flutter not found"
-          ls ~/flutter/bin || echo "flutter bin not found"
-
       - name: Flutter version
         working-directory: stanag_app
         run: flutter --version
 
       - name: Restore Firebase options
         working-directory: stanag_app
+        env:
+          FIREBASE_OPTIONS_DEV: ${{ secrets.FIREBASE_OPTIONS_DEV }}
+          FIREBASE_OPTIONS_STAGING: ${{ secrets.FIREBASE_OPTIONS_STAGING }}
+          FIREBASE_OPTIONS_PROD: ${{ secrets.FIREBASE_OPTIONS_PROD }}
         run: |
-          echo ${{ secrets.FIREBASE_OPTIONS_DEV }} | base64 --decode > lib/firebase_options_dev.dart
-          echo ${{ secrets.FIREBASE_OPTIONS_STAGING }} | base64 --decode > lib/firebase_options_staging.dart
-          echo ${{ secrets.FIREBASE_OPTIONS_PROD }} | base64 --decode > lib/firebase_options_prod.dart
+          echo "$FIREBASE_OPTIONS_DEV" | base64 --decode > lib/firebase_options_dev.dart
+          echo "$FIREBASE_OPTIONS_STAGING" | base64 --decode > lib/firebase_options_staging.dart
+          echo "$FIREBASE_OPTIONS_PROD" | base64 --decode > lib/firebase_options_prod.dart
 
       - name: Install dependencies
         working-directory: stanag_app
