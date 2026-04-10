@@ -30,7 +30,7 @@
   - Set $5/month budget alert immediately after creation
 - [x] Enable Firebase services: Auth, Firestore, Storage, FCM, Analytics, Crashlytics
 - [x] Set Firestore Security Rules — content public read, user data private
-- [ ] Initialise Flutter project with three flavours: `dev`, `staging`, `prod`
+- [x] Initialise Flutter project with three flavours: `dev`, `staging`, `prod`
   - Each flavour connects to its own Firebase project
 - [ ] Set up version control (Git) with branch strategy: `main`, `develop`, `feature/*`
 - [ ] Configure CI pipeline (GitHub Actions) — lint, test, and build on every PR
