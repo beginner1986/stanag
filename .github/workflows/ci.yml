@@ -64,6 +64,7 @@ jobs:
 
       - name: Build APK (dev flavour)
         working-directory: stanag_app
+        if: github.ref == 'refs/heads/develop'
         run: flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
 
       - name: Build APK (prod flavour)
