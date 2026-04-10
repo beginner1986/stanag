@@ -28,6 +28,13 @@ jobs:
           git clone https://github.com/flutter/flutter.git --branch stable --depth 1 ~/flutter
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
+      - name: Debug PATH
+        run: |
+          echo "PATH: $PATH"
+          echo "HOME: $HOME"
+          which flutter || echo "flutter not found"
+          ls ~/flutter/bin || echo "flutter bin not found"
+
       - name: Flutter version
         working-directory: stanag_app
         run: flutter --version
