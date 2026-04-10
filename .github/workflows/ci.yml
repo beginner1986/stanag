@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Flutter
+        run: |
+          git clone https://github.com/flutter/flutter.git --branch stable --depth 1 ~/flutter
+          echo "$HOME/flutter/bin" >> $GITHUB_PATH
+
+      - name: Flutter version
+        working-directory: stanag_app
+        run: flutter --version
+
+      - name: Restore Firebase options
+        working-directory: stanag_app
+        env:
+          FIREBASE_OPTIONS_DEV: ${{ secrets.FIREBASE_OPTIONS_DEV }}
+          FIREBASE_OPTIONS_STAGING: ${{ secrets.FIREBASE_OPTIONS_STAGING }}
+          FIREBASE_OPTIONS_PROD: ${{ secrets.FIREBASE_OPTIONS_PROD }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo "$FIREBASE_OPTIONS_DEV" | base64 --decode > lib/firebase_options_dev.dart
+          echo "$FIREBASE_OPTIONS_STAGING" | base64 --decode > lib/firebase_options_staging.dart
+          echo "$FIREBASE_OPTIONS_PROD" | base64 --decode > lib/firebase_options_prod.dart
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
+
+      - name: Install dependencies
+        working-directory: stanag_app
+        run: flutter pub get
+
+      - name: Analyse
+        working-directory: stanag_app
+        run: flutter analyze
+
+      - name: Run tests
+        working-directory: stanag_app
+        run: flutter test
+
+      - name: Build APK (dev flavour)
+        working-directory: stanag_app
+        run: flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
