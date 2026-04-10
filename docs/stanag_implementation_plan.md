@@ -32,7 +32,7 @@
 - [x] Set Firestore Security Rules — content public read, user data private
 - [x] Initialise Flutter project with three flavours: `dev`, `staging`, `prod`
   - Each flavour connects to its own Firebase project
-- [ ] Set up version control (Git) with branch strategy: `main`, `develop`, `feature/*`
+- [x] Set up version control (Git) with branch strategy: `main`, `develop`, `feature/*`
 - [ ] Configure CI pipeline (GitHub Actions) — lint, test, and build on every PR
 
 ### Core packages

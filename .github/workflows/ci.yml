@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Restore Firebase options
+        working-directory: stanag_app
+        run: |
+          echo ${{ secrets.FIREBASE_OPTIONS_DEV }} | base64 --decode > lib/firebase_options_dev.dart
+          echo ${{ secrets.FIREBASE_OPTIONS_STAGING }} | base64 --decode > lib/firebase_options_staging.dart
+          echo ${{ secrets.FIREBASE_OPTIONS_PROD }} | base64 --decode > lib/firebase_options_prod.dart
+
+      - name: Install dependencies
+        working-directory: stanag_app
+        run: flutter pub get
+
+      - name: Analyse
+        working-directory: stanag_app
+        run: flutter analyze
+
+      - name: Run tests
+        working-directory: stanag_app
+        run: flutter test
+
+      - name: Build APK (dev flavour)
+        working-directory: stanag_app
+        run: flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
