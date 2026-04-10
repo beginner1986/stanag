@@ -26,9 +26,9 @@
 
 ### Environment setup
 
-- [ ] Create Firebase project on Blaze plan, region `europe-west1`
+- [x] Create Firebase project on Blaze plan, region `europe-central2`
   - Set $5/month budget alert immediately after creation
-- [ ] Enable Firebase services: Auth, Firestore, Storage, FCM, Analytics, Crashlytics
+- [x] Enable Firebase services: Auth, Firestore, Storage, FCM, Analytics, Crashlytics
 - [ ] Set Firestore Security Rules — content public read, user data private
 - [ ] Initialise Flutter project with three flavours: `dev`, `staging`, `prod`
   - Each flavour connects to its own Firebase project
@@ -92,6 +92,7 @@ All packages resolve without conflicts. A blank Flutter app builds and runs on A
 - [ ] Configure subscription products in Google Play Console
 - [ ] Write Cloud Function webhook: RevenueCat event → set JWT custom claim → update `USERS` document
   - `is_premium` must only ever be set server-side via this webhook
+  - Set function region explicitly to `europe-central2` — the default is `us-central1` and will not be caught by the compiler
 - [ ] Build upgrade screen: feature list, pricing, Google Play Billing sheet
 - [ ] Force JWT token refresh on client immediately after purchase confirmation
 
@@ -170,6 +171,7 @@ Methodology partner can log into admin panel and create a complete lesson (unit 
 - [ ] Build Cloud Function: daily plan generator
   - Runs at midnight (Europe/Warsaw timezone)
   - Assigns lessons to each active user for the next day
+  - Set function region explicitly to `europe-central2`
   - Writes `DAILY_PLANS` document per user
 - [ ] Build home screen:
   - Today's plan card (lesson count, estimated time)
@@ -355,4 +357,3 @@ After production release, the following recurring tasks apply approximately mont
 
 ---
 
-*This document should be maintained alongside the product specification. Update task status in your project management tool (Notion recommended) as implementation progresses.*

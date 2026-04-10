@@ -1,8 +1,8 @@
 # STANAG 6001 English Learning App — Product Specification
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** April 2026  
-**Status:** Pre-implementation  
+**Status:** Implementation in progress — Phase 0  
 
 ---
 
@@ -78,7 +78,7 @@ The Android app and web version share the same Flutter codebase. Bug fixes and f
 |---|---|---|
 | Mobile + web | Flutter (Dart) | Single codebase for Android and web; native performance |
 | Authentication | Firebase Auth (EU) | Email/password + anonymous auth; account linking |
-| Database | Firestore (europe-west1) | EU data residency; offline persistence built in |
+| Database | Firestore (europe-central2 (Warsaw)) | EU data residency; offline persistence built in |
 | File storage | Firebase Storage (EU) | Audio files for listening exercises |
 | Push notifications | Firebase Cloud Messaging | Daily reminder notifications |
 | Subscriptions | RevenueCat | Manages Google Play Billing and entitlement state |
@@ -93,7 +93,8 @@ The Android app and web version share the same Flutter codebase. Bug fixes and f
 ### Firebase project configuration
 
 - **Plan:** Blaze (pay-as-you-go). Required for Firebase Storage access.
-- **Region:** `europe-west1` (Belgium). Set at project creation — cannot be changed.
+- **Region:** `europe-central2` (Warsaw). Set at project creation — cannot be changed.
+- **Cloud Functions region:** Must be explicitly set to `europe-central2` on every function deployment. The default is `us-central1` — if omitted, functions run in the US while Firestore is in Warsaw, adding significant latency to all server-side operations.
 - **Budget alert:** $5/month configured from day one.
 - **Flavours:** Three Firebase projects — `dev`, `staging`, `prod`. Flutter flavour configuration connects each build to its project.
 
@@ -280,40 +281,49 @@ await admin.auth().setCustomUserClaims(uid, {
 ### 6.4 Firestore Security Rules
 
 ```javascript
-// Content — public read, admin write via Cloud Function only
-match /levels/{id}    { allow read: if true; }
-match /units/{id}     { allow read: if true; }
-match /lessons/{id}   { allow read: if true; }
-match /exercises/{id} { allow read: if true; }
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-// User data — each user reads and writes only their own documents
-match /users/{uid} {
-  allow read, write: if request.auth.uid == uid;
-}
-match /user_progress/{docId} {
-  allow read, write: if request.auth.uid == resource.data.uid;
-}
-match /user_streaks/{uid} {
-  allow read, write: if request.auth.uid == uid;
-}
-match /user_exercise_log/{docId} {
-  allow read, write: if request.auth.uid == resource.data.uid;
-}
-match /daily_plans/{docId} {
-  allow read, write: if request.auth.uid == resource.data.uid;
-}
+    // Content — public read, admin writes via Cloud Function only
+    match /levels/{id}             { allow read: if true; }
+    match /units/{id}              { allow read: if true; }
+    match /lessons/{id}            { allow read: if true; }
+    match /exercises/{id}          { allow read: if true; }
+    match /daily_motivations/{id}  { allow read: if true; }
 
-// Premium-gated content
-match /mock_exams/{id} {
-  allow read: if request.auth.token.is_premium == true;
+    // User data — each user reads and writes only their own documents
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /user_progress/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+    match /user_streaks/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /user_exercise_log/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+    match /daily_plans/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+
+    // Premium-gated content
+    match /mock_exams/{id} {
+      allow read: if request.auth != null && request.auth.token.is_premium == true;
+    }
+  }
 }
 ```
+
+> **Implementation note — create vs update on subcollection rules:** The rules for `user_progress`, `user_exercise_log`, and `daily_plans` use `resource.data.uid` to verify ownership. `resource.data` refers to the *existing* document and is `null` on **creates** (no document exists yet). When building the batch write logic in Phase 2, handle creates using `request.resource.data.uid` (the *incoming* document) and updates using `resource.data.uid` (the *existing* document), or use a combined allow rule: `allow create: if request.auth != null && request.auth.uid == request.resource.data.uid; allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.uid;`
 
 Admin writes always go through Cloud Functions using the Admin SDK, which bypasses Security Rules. The content editor never has direct Firestore write access.
 
 ### 6.5 Data residency and privacy
 
-- All Firebase services configured in `europe-west1` (Belgium, EU).
+- All Firebase services configured in `europe-central2` (Warsaw).
 - Minimum data collection: email address and display name only. No full name, rank, unit, or other military-identifying information required.
 - RODO-compliant privacy policy required before launch, written in Polish and English.
 - Refresh token inactivity expiry set to 90 days in Firebase Auth console.
@@ -628,7 +638,7 @@ All Firebase costs are managed by the product owners. A $5/month budget alert is
 
 ### Phase 0 — Project foundation
 
-- Firebase project setup (Blaze, europe-west1, budget alert)
+- Firebase project setup (Blaze, europe-central2, budget alert)
 - Flutter project with dev/staging/prod flavours
 - Core package integration and configuration
 - CI/CD pipeline (GitHub Actions)
@@ -779,7 +789,7 @@ All Firebase costs are managed by the product owners. A $5/month budget alert is
 | RevenueCat | Third-party subscription management SDK |
 | AdMob | Google's mobile advertising platform |
 | Blaze | Firebase's pay-as-you-go pricing plan |
-| europe-west1 | Google Cloud region in Belgium; used for EU data residency |
+| `europe-central2` | Google Cloud region in Warsaw, Poland; chosen for lowest latency to Polish users and strongest RODO data residency position |
 
 ---
 
