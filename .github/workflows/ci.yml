@@ -38,10 +38,12 @@ jobs:
           FIREBASE_OPTIONS_DEV: ${{ secrets.FIREBASE_OPTIONS_DEV }}
           FIREBASE_OPTIONS_STAGING: ${{ secrets.FIREBASE_OPTIONS_STAGING }}
           FIREBASE_OPTIONS_PROD: ${{ secrets.FIREBASE_OPTIONS_PROD }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           echo "$FIREBASE_OPTIONS_DEV" | base64 --decode > lib/firebase_options_dev.dart
           echo "$FIREBASE_OPTIONS_STAGING" | base64 --decode > lib/firebase_options_staging.dart
           echo "$FIREBASE_OPTIONS_PROD" | base64 --decode > lib/firebase_options_prod.dart
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
 
       - name: Install dependencies
         working-directory: stanag_app
