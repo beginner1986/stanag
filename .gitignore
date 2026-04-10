@@ -36,6 +36,7 @@ Thumbs.db
 **/GoogleService-Info.plist
 **/*.env
 **/.env.*
+lib/firebase_options_*.dart
 
 # Android
 **/android/local.properties
