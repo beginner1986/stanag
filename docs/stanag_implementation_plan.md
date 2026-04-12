@@ -33,9 +33,9 @@
 - [x] Initialise Flutter project with three flavours: `dev`, `staging`, `prod`
   - Each flavour connects to its own Firebase project
 - [x] Set up version control (Git) with branch strategy: `main`, `develop`, `feature/*`
-- [ ] Configure CI pipeline (GitHub Actions) — lint, test, and build on every PR
+- [x] Configure CI pipeline (GitHub Actions) — lint, test, and build on every PR
 
-### Core packages
+### Core packages - added in the development process when needed
 
 - [ ] Add and configure: `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
 - [ ] Add and configure: `riverpod`, `go_router`, `flutter_localizations`, `intl`
