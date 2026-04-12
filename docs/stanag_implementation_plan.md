@@ -35,12 +35,18 @@
 - [x] Set up version control (Git) with branch strategy: `main`, `develop`, `feature/*`
 - [x] Configure CI pipeline (GitHub Actions) — lint, test, and build on every PR
 
-### Core packages - added in the development process when needed
+### Core packages
 
-- [ ] Add and configure: `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
-- [ ] Add and configure: `riverpod`, `go_router`, `flutter_localizations`, `intl`
-- [ ] Add and configure: `just_audio`, `firebase_messaging`, `flutter_local_notifications`
-- [ ] Add and configure: `google_mobile_ads`, `purchases_flutter` (RevenueCat), `firebase_crashlytics`
+Dependencies are added as needed at the start of each phase, not upfront. This keeps `pubspec.yaml` honest, surfaces version conflicts in context, and makes it easier to attribute any dependency issue to the feature that introduced it.
+
+| Phase | Packages to add |
+|---|---|
+| Phase 0 | `flutter_localizations`, `intl`, `shared_preferences` |
+| Phase 1 | `firebase_auth`, `cloud_firestore`, `flutter_riverpod`, `go_router`, `purchases_flutter` |
+| Phase 2 | `firebase_storage`, `just_audio` |
+| Phase 3 | `firebase_messaging`, `flutter_local_notifications`, `google_mobile_ads`, `firebase_analytics`, `firebase_crashlytics` |
+
+`firebase_core` is already present from `flutterfire configure`. Add each package with `flutter pub add <package>` to let pub resolve the correct version automatically — do not hand-pin versions in `pubspec.yaml`.
 
 ### Localisation scaffold
 
@@ -51,7 +57,7 @@
 
 ### Definition of done
 
-All packages resolve without conflicts. A blank Flutter app builds and runs on Android and web for all three flavours. Language switcher toggles between PL and EN on a test screen. CI pipeline passes on a sample PR.
+A blank Flutter app builds and runs on Android and web for all three flavours. Phase 0 packages (`flutter_localizations`, `intl`, `shared_preferences`) resolve without conflicts. Language switcher toggles between PL and EN on a test screen. CI pipeline passes on a sample PR.
 
 ---
 
@@ -356,4 +362,3 @@ After production release, the following recurring tasks apply approximately mont
 | User support inbox review | Developer | Respond to support emails, log recurring issues |
 
 ---
-
