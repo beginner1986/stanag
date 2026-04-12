@@ -28,6 +28,9 @@ Thumbs.db
 **/*.freezed.dart
 **/*.gr.dart
 
+# Generated localisation files
+**/lib/l10n/app_localizations*.dart
+
 # Logs
 *.log
 

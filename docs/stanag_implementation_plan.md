@@ -50,7 +50,7 @@ Dependencies are added as needed at the start of each phase, not upfront. This k
 
 ### Localisation scaffold
 
-- [ ] Create `l10n.yaml` and `.arb` files for Polish (`app_pl.arb`) and English (`app_en.arb`)
+- [x] Create `l10n.yaml` and `.arb` files for Polish (`app_pl.arb`) and English (`app_en.arb`)
   - All UI strings go into `.arb` files from day one — no hardcoded strings anywhere
 - [ ] Implement language switcher; persist choice to `SharedPreferences`
 - [ ] Confirm `.arb` generation is wired into the build process

@@ -4,6 +4,7 @@ import 'firebase_options_dev.dart' as dev;
 import 'firebase_options_staging.dart' as staging;
 import 'firebase_options_prod.dart' as prod;
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
 
 const String flavor = String.fromEnvironment('FLAVOR', defaultValue: 'dev');
@@ -18,7 +19,7 @@ Future<void> main() async {
   };
 
   await Firebase.initializeApp(options: options);
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appName,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
