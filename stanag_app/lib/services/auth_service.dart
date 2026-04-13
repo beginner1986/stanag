@@ -8,7 +8,7 @@ class AuthService {
   User? get currentUser => _auth.currentUser;
 
   Future<void> signInAnonymously() async {
-    if (_auth.currentUser == null) return;
+    if (_auth.currentUser != null) return;
     await _auth.signInAnonymously();
   }
 }

@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:stanag_app/screens/language_test_screen.dart';
+import 'package:stanag_app/services/auth_service.dart';
 import 'firebase_options_dev.dart' as dev;
 import 'firebase_options_staging.dart' as staging;
 import 'firebase_options_prod.dart' as prod;
@@ -21,6 +23,11 @@ Future<void> main() async {
   };
 
   await Firebase.initializeApp(options: options);
+
+  await AuthService(FirebaseAuth.instance).signInAnonymously();
+
+  // print('UID: ${FirebaseAuth.instance.currentUser?.uid}');
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
