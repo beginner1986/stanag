@@ -50,10 +50,15 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
           fi
 
+       
       - name: Install dependencies
         working-directory: stanag_app
         run: flutter pub get
 
+      - name: Generate localisations
+        working-directory: stanag_app
+        run: flutter gen-l10n
+        
       - name: Analyse
         working-directory: stanag_app
         run: flutter analyze
