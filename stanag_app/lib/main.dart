@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:stanag_app/screens/language_test_screen.dart';
 import 'package:stanag_app/services/auth_service.dart';
+import 'package:stanag_app/services/user_service.dart';
 import 'firebase_options_dev.dart' as dev;
 import 'firebase_options_staging.dart' as staging;
 import 'firebase_options_prod.dart' as prod;
@@ -24,9 +26,25 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: options);
 
+  final auth = FirebaseAuth.instance;
+  final firestore = FirebaseFirestore.instance;
+
   await AuthService(FirebaseAuth.instance).signInAnonymously();
 
-  // print('UID: ${FirebaseAuth.instance.currentUser?.uid}');
+  final user = auth.currentUser;
+  if (user != null) {
+    final deviceLang =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    final interfaceLang = deviceLang == 'pl' ? 'pl' : 'en';
+    try {
+      await UserService(firestore).createUserDocumentIfNeeded(
+        user.uid,
+        interfaceLang: interfaceLang,
+      );
+    } catch (_) {
+      // Document creation will be retried on next launch.
+    }
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }

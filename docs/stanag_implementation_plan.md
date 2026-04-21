@@ -66,8 +66,8 @@ A blank Flutter app builds and runs on Android and web for all three flavours. P
 
 ### Anonymous auth
 
-- [ ] Implement silent anonymous sign-in on first app launch
-- [ ] Create minimal `USERS` document in Firestore on first launch (`is_anonymous: true`)
+- [x] Implement silent anonymous sign-in on first app launch
+- [x] Create minimal `USERS` document in Firestore on first launch (`is_anonymous: true`)
 - [ ] Build auth state provider (Riverpod) — app reacts to all four user states:
   - `anonymous`, `registered_free`, `registered_premium`, `expired_premium`
 
