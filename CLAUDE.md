@@ -54,6 +54,8 @@ On first launch, `main()` calls `AuthService.signInAnonymously()` before `runApp
 
 The four user states are: `anonymous`, `registered_free`, `registered_premium`, `expired_premium`. Premium status is authoritative only via the JWT custom claim `is_premium` — set server-side by a Cloud Function webhook from RevenueCat. Never set premium state client-side.
 
+`userStateProvider` (in `lib/providers/auth_provider.dart`) is a `StreamProvider<UserState>` driven by `idTokenChanges()` — not `authStateChanges()` — so premium claim changes are detected without restarting the app. It reads the `is_premium` and `premium_until` JWT claims via `getIdTokenResult()`. Call `AuthService.refreshToken()` after purchase to force an immediate token refresh so the new claim propagates to the UI without the user restarting the app.
+
 When a user registers, the anonymous UID is preserved via `linkWithCredential()` — no data migration needed. If the email already exists, the app must catch the linking error, offer login, and manually merge progress.
 
 ### Localisation
@@ -84,6 +86,8 @@ Completed:
 - Riverpod providers for auth and Firestore instances
 - Localisation scaffold (PL/EN `.arb` files, locale persistence)
 - CI pipeline (lint, test, build on PRs to `main`/`develop`)
+- `UserState` enum and `userStateProvider` covering all four auth states
+- `SplashScreen` placeholder shown during auth state loading/error
 
 In progress / not yet built:
 - GoRouter navigation shell with auth-gated routes
