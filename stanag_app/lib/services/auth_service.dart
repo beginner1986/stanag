@@ -11,4 +11,8 @@ class AuthService {
     if (_auth.currentUser != null) return;
     await _auth.signInAnonymously();
   }
+
+  Future<void> refreshToken() async {
+    await _auth.currentUser?.getIdToken(true);
+  }
 }
