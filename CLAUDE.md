@@ -78,7 +78,7 @@ Premium-gated content (`mock_exams`) requires `request.auth.token.is_premium == 
 
 Session writes (progress, streaks, daily plans) must be batched at the end of each lesson — not per-exercise — to stay within Firestore's free-tier write quota (~1,200 DAU ceiling).
 
-### Current implementation status (Phase 1 in progress)
+### Current implementation status (Phase 1 mostly complete)
 
 Completed:
 - Firebase project setup with three flavours
@@ -88,11 +88,15 @@ Completed:
 - CI pipeline (lint, test, build on PRs to `main`/`develop`)
 - `UserState` enum and `userStateProvider` covering all four auth states
 - `SplashScreen` placeholder shown during auth state loading/error
-- Full unit/widget test suite (46 tests); line coverage 74.8% across non-generated files
+- GoRouter navigation shell (`ShellRoute`) with bottom `NavigationBar` (Home / Progress / Settings)
+- `RegisterScreen`, `LoginScreen`, `ForgotPasswordScreen` with full form validation and error handling
+- `SettingsScreen`: language toggle, account info, sign-out
+- `AuthService` extended: `registerWithEmail`, `signInWithEmail`, `sendPasswordResetEmail`, `signOut`
+- Full unit/widget test suite (77 tests); CI passes
 
 In progress / not yet built:
-- GoRouter navigation shell with auth-gated routes
-- Registration, login, password reset screens
+- Firebase Auth email template customisation (Polish copy, branding) — console task, pre-beta
+- `[DEV]` nav buttons on `HomeScreen` to be removed when Phase 2 session result screen is built
 - RevenueCat integration and premium upgrade flow
 - Cloud Function: RevenueCat webhook → JWT custom claim
 
@@ -139,4 +143,5 @@ Test files mirror `lib/`:
 ### Widget test gotchas
 
 - `pumpAndSettle()` times out whenever `CircularProgressIndicator` is visible (infinite animation). Use `await tester.pump(); await tester.pump();` instead for tests that show `SplashScreen`.
-- When the current locale's `languageName` string matches a button label (e.g. "Polski"), `find.text('Polski')` is ambiguous. Use `find.widgetWithText(ElevatedButton, 'Polski')` to target the button specifically.
+- Screen widget tests use a plain `MaterialApp` wrapper (not `MaterialApp.router`) with `authServiceProvider.overrideWithValue(mockService)` — no need for a real GoRouter in screen-level tests.
+- `AuthCredential` requires a `registerFallbackValue(FakeAuthCredential())` in `setUpAll` before using `any()` in mocktail matchers for `linkWithCredential`.
