@@ -76,7 +76,7 @@ A blank Flutter app builds and runs on Android and web for all three flavours. P
 - [x] Build sign-up screen — email + password, link to anonymous UID via `linkWithCredential()`
 - [x] Handle email-already-exists edge case — offer login and manually merge day 1 progress
 - [x] Build login screen
-- [ ] Build password reset flow (Firebase email, Polish copy and app branding)
+- [x] Build password reset flow (Firebase email, Polish copy and app branding)
 - [ ] Customise Firebase Auth email templates in console
 
 ### Navigation shell

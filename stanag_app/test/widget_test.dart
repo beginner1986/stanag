@@ -11,7 +11,7 @@ void main() {
   // ── MyApp widget ───────────────────────────────────────────────────────────
 
   group('MyApp', () {
-    testWidgets('shows LanguageTestScreen when userState has data', (tester) async {
+    testWidgets('shows HomeScreen when userState has data', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -44,7 +44,7 @@ void main() {
 
       expect(find.byType(SplashScreen), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.byType(LanguageTestScreen), findsNothing);
+      expect(find.byType(HomeScreen), findsNothing);
     });
 
     testWidgets('shows SplashScreen when userState has an error', (tester) async {
@@ -68,7 +68,7 @@ void main() {
 
       expect(find.byType(SplashScreen), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.byType(LanguageTestScreen), findsNothing);
+      expect(find.byType(HomeScreen), findsNothing);
     });
   });
 
