@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/screens/language_test_screen.dart';
+import 'package:stanag_app/screens/register_screen.dart';
 import 'package:stanag_app/screens/splash_screen.dart';
+
+const _authRoutes = {'/register', '/login', '/forgot-password'};
 
 class _RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -14,12 +18,16 @@ class _RouterNotifier extends ChangeNotifier {
 
   String? redirect(BuildContext context, GoRouterState state) {
     final userState = _ref.read(userStateProvider);
-    final onSplash = state.matchedLocation == '/splash';
+    final location = state.matchedLocation;
 
     if (userState.isLoading || userState.hasError) {
-      return onSplash ? null : '/splash';
+      return location == '/splash' ? null : '/splash';
     }
-    if (onSplash) return '/';
+    if (location == '/splash') return '/';
+
+    final isRegistered = userState.asData?.value != UserState.anonymous;
+    if (isRegistered && _authRoutes.contains(location)) return '/';
+
     return null;
   }
 }
@@ -38,6 +46,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (_, _) => const LanguageTestScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (_, _) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (_, _) => const Scaffold(
+          body: Center(child: Text('Login — coming soon')),
+        ),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (_, _) => const Scaffold(
+          body: Center(child: Text('Reset password — coming soon')),
+        ),
       ),
     ],
   );
