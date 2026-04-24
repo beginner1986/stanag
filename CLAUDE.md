@@ -88,9 +88,55 @@ Completed:
 - CI pipeline (lint, test, build on PRs to `main`/`develop`)
 - `UserState` enum and `userStateProvider` covering all four auth states
 - `SplashScreen` placeholder shown during auth state loading/error
+- Full unit/widget test suite (46 tests); line coverage 74.8% across non-generated files
 
 In progress / not yet built:
 - GoRouter navigation shell with auth-gated routes
 - Registration, login, password reset screens
 - RevenueCat integration and premium upgrade flow
 - Cloud Function: RevenueCat webhook → JWT custom claim
+
+## Testing
+
+### Running coverage
+
+```bash
+# from stanag_app/
+flutter test --coverage
+# Parse results (lcov not required):
+python3 - <<'EOF'
+import re
+with open("coverage/lcov.info") as f:
+    content = f.read()
+records = content.strip().split("end_of_record")
+for rec in records:
+    sf = re.search(r"^SF:(.+)$", rec, re.MULTILINE)
+    lh = re.search(r"^LH:(\d+)$", rec, re.MULTILINE)
+    lf = re.search(r"^LF:(\d+)$", rec, re.MULTILINE)
+    if sf and lh and lf:
+        path = sf.group(1).split("stanag_app/")[-1]
+        cov, tot = int(lh.group(1)), int(lf.group(1))
+        print(f"{path:<55} {cov}/{tot}  {cov/tot*100:.1f}%")
+EOF
+```
+
+### Test structure
+
+Test files mirror `lib/`:
+- `test/providers/` — Riverpod provider tests
+- `test/services/` — service unit tests
+- `test/screens/` — widget tests for individual screens
+
+### Conventions
+
+- **Firebase Auth mocking** — use `mocktail` (`MockFirebaseAuth`, `MockUser`, `MockIdTokenResult`). No codegen needed.
+- **Firestore mocking** — use `fake_cloud_firestore` (`FakeFirebaseFirestore`).
+- **Riverpod providers** — test with `ProviderContainer` + `overrides`, not the full widget tree. Override `firebaseAuthProvider` to inject mock auth.
+- **StreamProvider** — Riverpod 3.x removed `.stream`/`.future` modifiers. Use `container.listen` with a `Completer<T>` to await the first emission.
+- **SharedPreferences** — call `SharedPreferences.setMockInitialValues({})` in `setUp` before any test that uses `localeProvider`. Keys are passed without the `flutter.` prefix — it is added automatically.
+- **Generated files** — `firebase_options_*.dart` and `app_localizations_*.dart` carry `// coverage:ignore-file` so they are excluded from coverage reports.
+
+### Widget test gotchas
+
+- `pumpAndSettle()` times out whenever `CircularProgressIndicator` is visible (infinite animation). Use `await tester.pump(); await tester.pump();` instead for tests that show `SplashScreen`.
+- When the current locale's `languageName` string matches a button label (e.g. "Polski"), `find.text('Polski')` is ambiguous. Use `find.widgetWithText(ElevatedButton, 'Polski')` to target the button specifically.

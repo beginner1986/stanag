@@ -7,5 +7,151 @@
   "languageName": "English",
   "@languageName": {
     "description": "The display name of this language"
+  },
+
+  "navHome": "Home",
+  "@navHome": {
+    "description": "Bottom navigation label for the home tab"
+  },
+  "navProgress": "Progress",
+  "@navProgress": {
+    "description": "Bottom navigation label for the progress tab"
+  },
+  "navSettings": "Settings",
+  "@navSettings": {
+    "description": "Bottom navigation label for the settings tab"
+  },
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "AppBar title on the settings screen"
+  },
+  "settingsLanguageSection": "Language",
+  "@settingsLanguageSection": {
+    "description": "Section header for the language toggle in settings"
+  },
+  "settingsAccountSection": "Account",
+  "@settingsAccountSection": {
+    "description": "Section header for account info in settings"
+  },
+  "settingsGuest": "Guest",
+  "@settingsGuest": {
+    "description": "Shown instead of an email address for anonymous users"
+  },
+  "settingsSignOut": "Sign out",
+  "@settingsSignOut": {
+    "description": "Sign-out button label in settings"
+  },
+  "settingsPrivacyPolicy": "Privacy Policy",
+  "@settingsPrivacyPolicy": {
+    "description": "Privacy policy link label in settings"
+  },
+  "settingsTerms": "Terms of Service",
+  "@settingsTerms": {
+    "description": "Terms of service link label in settings"
+  },
+
+  "emailLabel": "Email",
+  "@emailLabel": {
+    "description": "Label for the email input field"
+  },
+  "passwordLabel": "Password",
+  "@passwordLabel": {
+    "description": "Label for the password input field"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Generic cancel button label"
+  },
+  "errorGeneric": "Something went wrong. Please try again.",
+  "@errorGeneric": {
+    "description": "Generic error message shown when an operation fails unexpectedly"
+  },
+  "emailValidationInvalid": "Enter a valid email address.",
+  "@emailValidationInvalid": {
+    "description": "Validation error when the email field contains an invalid address"
+  },
+  "passwordValidationTooShort": "Password must be at least 6 characters.",
+  "@passwordValidationTooShort": {
+    "description": "Validation error when the password is shorter than the minimum length"
+  },
+
+  "registerTitle": "Create account",
+  "@registerTitle": {
+    "description": "AppBar title on the registration screen"
+  },
+  "registerButton": "Create account",
+  "@registerButton": {
+    "description": "Label for the submit button on the registration screen"
+  },
+  "registerHaveAccount": "Already have an account?",
+  "@registerHaveAccount": {
+    "description": "Prompt shown next to the sign-in link on the registration screen"
+  },
+  "registerSignInLink": "Sign in",
+  "@registerSignInLink": {
+    "description": "Link to the sign-in screen shown on the registration screen"
+  },
+  "registerPrivacyNote": "By creating an account you agree to our Privacy Policy.",
+  "@registerPrivacyNote": {
+    "description": "Legal note shown below the register button"
+  },
+  "registerEmailInUseTitle": "Email already registered",
+  "@registerEmailInUseTitle": {
+    "description": "Dialog title when linkWithCredential fails with email-already-in-use"
+  },
+  "registerEmailInUseBody": "An account with this email already exists. Sign in instead?",
+  "@registerEmailInUseBody": {
+    "description": "Dialog body when linkWithCredential fails with email-already-in-use"
+  },
+  "registerEmailInUseConfirm": "Sign in",
+  "@registerEmailInUseConfirm": {
+    "description": "Confirm button in the email-already-in-use dialog"
+  },
+
+  "signInTitle": "Sign in",
+  "@signInTitle": {
+    "description": "AppBar title on the sign-in screen"
+  },
+  "signInButton": "Sign in",
+  "@signInButton": {
+    "description": "Label for the submit button on the sign-in screen"
+  },
+  "signInForgotPassword": "Forgot password?",
+  "@signInForgotPassword": {
+    "description": "Link to the password reset screen on the sign-in screen"
+  },
+  "signInNoAccount": "Don't have an account?",
+  "@signInNoAccount": {
+    "description": "Prompt shown next to the create-account link on the sign-in screen"
+  },
+  "signInCreateLink": "Create one",
+  "@signInCreateLink": {
+    "description": "Link to the registration screen shown on the sign-in screen"
+  },
+  "signInErrorInvalidCredentials": "Incorrect email or password.",
+  "@signInErrorInvalidCredentials": {
+    "description": "Error shown when sign-in fails due to wrong credentials"
+  },
+
+  "resetPasswordTitle": "Reset password",
+  "@resetPasswordTitle": {
+    "description": "AppBar title on the password reset screen"
+  },
+  "resetPasswordDescription": "Enter your email and we'll send you a reset link.",
+  "@resetPasswordDescription": {
+    "description": "Instructional text on the password reset screen"
+  },
+  "resetPasswordButton": "Send reset email",
+  "@resetPasswordButton": {
+    "description": "Label for the submit button on the password reset screen"
+  },
+  "resetPasswordSuccess": "Reset link sent. Check your inbox.",
+  "@resetPasswordSuccess": {
+    "description": "Confirmation message shown after the reset email is sent"
+  },
+  "resetPasswordUserNotFound": "No account found with this email.",
+  "@resetPasswordUserNotFound": {
+    "description": "Error shown when sending a reset email to an unregistered address"
   }
 }

@@ -4,14 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stanag_app/main.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
-import 'package:stanag_app/screens/language_test_screen.dart';
+import 'package:stanag_app/screens/home_screen.dart';
 import 'package:stanag_app/screens/splash_screen.dart';
 
 void main() {
   // ── MyApp widget ───────────────────────────────────────────────────────────
 
   group('MyApp', () {
-    testWidgets('shows LanguageTestScreen when userState has data', (tester) async {
+    testWidgets('shows HomeScreen when userState has data', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -24,9 +24,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(LanguageTestScreen), findsOneWidget);
-      expect(find.text('English'), findsWidgets);
-      expect(find.text('Polski'), findsOneWidget);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
     });
 
     testWidgets('shows SplashScreen while userState is loading', (tester) async {
@@ -45,7 +44,7 @@ void main() {
 
       expect(find.byType(SplashScreen), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.byType(LanguageTestScreen), findsNothing);
+      expect(find.byType(HomeScreen), findsNothing);
     });
 
     testWidgets('shows SplashScreen when userState has an error', (tester) async {
@@ -69,7 +68,7 @@ void main() {
 
       expect(find.byType(SplashScreen), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.byType(LanguageTestScreen), findsNothing);
+      expect(find.byType(HomeScreen), findsNothing);
     });
   });
 
