@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/screens/language_test_screen.dart';
+import 'package:stanag_app/screens/login_screen.dart';
 import 'package:stanag_app/screens/register_screen.dart';
 import 'package:stanag_app/screens/splash_screen.dart';
 
@@ -53,9 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/login',
-        builder: (_, _) => const Scaffold(
-          body: Center(child: Text('Login — coming soon')),
-        ),
+        builder: (_, _) => const LoginScreen(),
       ),
       GoRoute(
         path: '/forgot-password',
