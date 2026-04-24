@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
-import 'package:stanag_app/screens/language_test_screen.dart';
 import 'package:stanag_app/screens/forgot_password_screen.dart';
+import 'package:stanag_app/screens/home_screen.dart';
 import 'package:stanag_app/screens/login_screen.dart';
+import 'package:stanag_app/screens/main_shell.dart';
+import 'package:stanag_app/screens/progress_screen.dart';
 import 'package:stanag_app/screens/register_screen.dart';
+import 'package:stanag_app/screens/settings_screen.dart';
 import 'package:stanag_app/screens/splash_screen.dart';
 
 const _authRoutes = {'/register', '/login', '/forgot-password'};
@@ -25,10 +28,10 @@ class _RouterNotifier extends ChangeNotifier {
     if (userState.isLoading || userState.hasError) {
       return location == '/splash' ? null : '/splash';
     }
-    if (location == '/splash') return '/';
+    if (location == '/splash') return '/home';
 
     final isRegistered = userState.asData?.value != UserState.anonymous;
-    if (isRegistered && _authRoutes.contains(location)) return '/';
+    if (isRegistered && _authRoutes.contains(location)) return '/home';
 
     return null;
   }
@@ -45,9 +48,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         builder: (_, _) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/',
-        builder: (_, _) => const LanguageTestScreen(),
+      ShellRoute(
+        builder: (context, state, child) => MainShell(
+          location: state.uri.path,
+          child: child,
+        ),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (_, _) => const HomeScreen(),
+          ),
+          GoRoute(
+            path: '/progress',
+            builder: (_, _) => const ProgressScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (_, _) => const SettingsScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/register',

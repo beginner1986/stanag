@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stanag_app/main.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
-import 'package:stanag_app/screens/language_test_screen.dart';
+import 'package:stanag_app/screens/home_screen.dart';
 import 'package:stanag_app/screens/splash_screen.dart';
 
 void main() {
@@ -24,9 +24,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(LanguageTestScreen), findsOneWidget);
-      expect(find.text('English'), findsWidgets);
-      expect(find.text('Polski'), findsOneWidget);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
     });
 
     testWidgets('shows SplashScreen while userState is loading', (tester) async {

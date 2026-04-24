@@ -9,6 +9,48 @@
     "description": "The display name of this language"
   },
 
+  "navHome": "Home",
+  "@navHome": {
+    "description": "Bottom navigation label for the home tab"
+  },
+  "navProgress": "Progress",
+  "@navProgress": {
+    "description": "Bottom navigation label for the progress tab"
+  },
+  "navSettings": "Settings",
+  "@navSettings": {
+    "description": "Bottom navigation label for the settings tab"
+  },
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "AppBar title on the settings screen"
+  },
+  "settingsLanguageSection": "Language",
+  "@settingsLanguageSection": {
+    "description": "Section header for the language toggle in settings"
+  },
+  "settingsAccountSection": "Account",
+  "@settingsAccountSection": {
+    "description": "Section header for account info in settings"
+  },
+  "settingsGuest": "Guest",
+  "@settingsGuest": {
+    "description": "Shown instead of an email address for anonymous users"
+  },
+  "settingsSignOut": "Sign out",
+  "@settingsSignOut": {
+    "description": "Sign-out button label in settings"
+  },
+  "settingsPrivacyPolicy": "Privacy Policy",
+  "@settingsPrivacyPolicy": {
+    "description": "Privacy policy link label in settings"
+  },
+  "settingsTerms": "Terms of Service",
+  "@settingsTerms": {
+    "description": "Terms of service link label in settings"
+  },
+
   "emailLabel": "Email",
   "@emailLabel": {
     "description": "Label for the email input field"

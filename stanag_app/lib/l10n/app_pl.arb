@@ -3,6 +3,18 @@
   "appName": "STANAG English",
   "languageName": "Polski",
 
+  "navHome": "Główna",
+  "navProgress": "Postępy",
+  "navSettings": "Ustawienia",
+
+  "settingsTitle": "Ustawienia",
+  "settingsLanguageSection": "Język",
+  "settingsAccountSection": "Konto",
+  "settingsGuest": "Gość",
+  "settingsSignOut": "Wyloguj się",
+  "settingsPrivacyPolicy": "Polityka prywatności",
+  "settingsTerms": "Regulamin",
+
   "emailLabel": "Adres e-mail",
   "passwordLabel": "Hasło",
   "cancel": "Anuluj",
