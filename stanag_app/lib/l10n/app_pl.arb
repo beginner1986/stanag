@@ -1,5 +1,34 @@
 {
   "@@locale": "pl",
   "appName": "STANAG English",
-  "languageName": "Polski"
+  "languageName": "Polski",
+
+  "emailLabel": "Adres e-mail",
+  "passwordLabel": "Hasło",
+  "cancel": "Anuluj",
+  "errorGeneric": "Coś poszło nie tak. Spróbuj ponownie.",
+  "emailValidationInvalid": "Podaj prawidłowy adres e-mail.",
+  "passwordValidationTooShort": "Hasło musi mieć co najmniej 6 znaków.",
+
+  "registerTitle": "Utwórz konto",
+  "registerButton": "Utwórz konto",
+  "registerHaveAccount": "Masz już konto?",
+  "registerSignInLink": "Zaloguj się",
+  "registerPrivacyNote": "Tworząc konto, akceptujesz naszą Politykę prywatności.",
+  "registerEmailInUseTitle": "Adres e-mail już zarejestrowany",
+  "registerEmailInUseBody": "Konto z tym adresem e-mail już istnieje. Chcesz się zalogować?",
+  "registerEmailInUseConfirm": "Zaloguj się",
+
+  "signInTitle": "Zaloguj się",
+  "signInButton": "Zaloguj się",
+  "signInForgotPassword": "Nie pamiętasz hasła?",
+  "signInNoAccount": "Nie masz konta?",
+  "signInCreateLink": "Utwórz konto",
+  "signInErrorInvalidCredentials": "Nieprawidłowy adres e-mail lub hasło.",
+
+  "resetPasswordTitle": "Resetuj hasło",
+  "resetPasswordDescription": "Podaj swój adres e-mail, a wyślemy Ci link do resetowania hasła.",
+  "resetPasswordButton": "Wyślij link resetujący",
+  "resetPasswordSuccess": "Link wysłany. Sprawdź swoją skrzynkę.",
+  "resetPasswordUserNotFound": "Nie znaleziono konta z tym adresem e-mail."
 }
