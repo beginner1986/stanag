@@ -38,10 +38,43 @@
   "@settingsGuest": {
     "description": "Shown instead of an email address for anonymous users"
   },
+  "settingsAccountTypeFree": "Free",
+  "@settingsAccountTypeFree": {
+    "description": "Account type label for registered free users"
+  },
+  "settingsAccountTypePremium": "Premium",
+  "@settingsAccountTypePremium": {
+    "description": "Account type label for active premium users"
+  },
+  "settingsAccountTypeExpired": "Expired",
+  "@settingsAccountTypeExpired": {
+    "description": "Account type label for users whose premium has expired"
+  },
   "settingsSignOut": "Sign out",
   "@settingsSignOut": {
     "description": "Sign-out button label in settings"
   },
+  "settingsNotificationsSection": "Notifications",
+  "@settingsNotificationsSection": {
+    "description": "Section header for notifications settings"
+  },
+  "settingsNotificationsDailyReminder": "Daily reminder",
+  "@settingsNotificationsDailyReminder": {
+    "description": "Label for the notifications on/off toggle in settings"
+  },
+  "settingsNotificationsTime": "Reminder time",
+  "@settingsNotificationsTime": {
+    "description": "Label for the reminder time picker row in settings"
+  },
+  "settingsNotificationsDenied": "Enable notifications in system settings",
+  "@settingsNotificationsDenied": {
+    "description": "Snackbar message shown when notification permission is permanently denied"
+  },
+  "settingsNotificationsOpenSettings": "Open settings",
+  "@settingsNotificationsOpenSettings": {
+    "description": "Snackbar action label that opens system app settings"
+  },
+
   "settingsPrivacyPolicy": "Privacy Policy",
   "@settingsPrivacyPolicy": {
     "description": "Privacy policy link label in settings"
