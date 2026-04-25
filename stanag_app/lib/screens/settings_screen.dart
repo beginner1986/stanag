@@ -6,6 +6,10 @@ import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/providers/locale_provider.dart';
 import 'package:stanag_app/providers/notification_preferences_provider.dart';
 import 'package:stanag_app/services/notification_permission_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+const _privacyPolicyUrl = 'https://stanag-english.app/privacy';
+const _termsUrl = 'https://stanag-english.app/terms';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -15,6 +19,16 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric)),
+      );
+    }
+  }
+
   Future<void> _signOut() async {
     await ref.read(authServiceProvider).signOut();
     await ref.read(authServiceProvider).signInAnonymously();
@@ -151,13 +165,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: const Icon(Icons.privacy_tip_outlined),
             title: Text(l.settingsPrivacyPolicy),
             trailing: const Icon(Icons.open_in_new, size: 16),
-            onTap: () {},
+            onTap: () => _launchUrl(_privacyPolicyUrl),
           ),
           ListTile(
             leading: const Icon(Icons.description_outlined),
             title: Text(l.settingsTerms),
             trailing: const Icon(Icons.open_in_new, size: 16),
-            onTap: () {},
+            onTap: () => _launchUrl(_termsUrl),
           ),
         ],
       ),
