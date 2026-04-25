@@ -38,6 +38,18 @@
   "@settingsGuest": {
     "description": "Shown instead of an email address for anonymous users"
   },
+  "settingsAccountTypeFree": "Free",
+  "@settingsAccountTypeFree": {
+    "description": "Account type label for registered free users"
+  },
+  "settingsAccountTypePremium": "Premium",
+  "@settingsAccountTypePremium": {
+    "description": "Account type label for active premium users"
+  },
+  "settingsAccountTypeExpired": "Expired",
+  "@settingsAccountTypeExpired": {
+    "description": "Account type label for users whose premium has expired"
+  },
   "settingsSignOut": "Sign out",
   "@settingsSignOut": {
     "description": "Sign-out button label in settings"

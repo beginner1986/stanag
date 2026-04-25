@@ -124,6 +124,51 @@ void main() {
       expect(find.text('Sign out'), findsOneWidget);
     });
 
+    testWidgets('shows no account type subtitle for anonymous user', (tester) async {
+      await tester.pumpWidget(_wrap(
+        authService: mockAuthService,
+        userState: UserState.anonymous,
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Free'), findsNothing);
+      expect(find.text('Premium'), findsNothing);
+      expect(find.text('Expired'), findsNothing);
+    });
+
+    testWidgets('shows Free subtitle for registeredFree user', (tester) async {
+      await tester.pumpWidget(_wrap(
+        authService: mockAuthService,
+        userState: UserState.registeredFree,
+        email: 'test@example.com',
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Free'), findsOneWidget);
+    });
+
+    testWidgets('shows Premium subtitle for registeredPremium user', (tester) async {
+      await tester.pumpWidget(_wrap(
+        authService: mockAuthService,
+        userState: UserState.registeredPremium,
+        email: 'test@example.com',
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Premium'), findsOneWidget);
+    });
+
+    testWidgets('shows Expired subtitle for expiredPremium user', (tester) async {
+      await tester.pumpWidget(_wrap(
+        authService: mockAuthService,
+        userState: UserState.expiredPremium,
+        email: 'test@example.com',
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Expired'), findsOneWidget);
+    });
+
     testWidgets('sign-out calls signOut then signInAnonymously', (tester) async {
       when(() => mockAuthService.signOut()).thenAnswer((_) async {});
       when(() => mockAuthService.signInAnonymously()).thenAnswer((_) async {});

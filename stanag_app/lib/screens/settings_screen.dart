@@ -77,6 +77,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  String? _accountTypeLabel(UserState? state, AppLocalizations l) {
+    return switch (state) {
+      UserState.registeredFree => l.settingsAccountTypeFree,
+      UserState.registeredPremium => l.settingsAccountTypePremium,
+      UserState.expiredPremium => l.settingsAccountTypeExpired,
+      _ => null,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -84,7 +93,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final userState = ref.watch(userStateProvider);
     final notifPrefs = ref.watch(notificationPreferencesProvider);
     final email = ref.read(authServiceProvider).currentUser?.email;
-    final isRegistered = userState.asData?.value != UserState.anonymous;
+    final userStateValue = userState.asData?.value;
+    final isRegistered = userStateValue != UserState.anonymous;
+    final accountTypeLabel = _accountTypeLabel(userStateValue, l);
 
     return Scaffold(
       appBar: AppBar(title: Text(l.settingsTitle)),
@@ -127,6 +138,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.account_circle_outlined),
             title: Text(isRegistered && email != null ? email : l.settingsGuest),
+            subtitle: accountTypeLabel != null ? Text(accountTypeLabel) : null,
           ),
           if (isRegistered)
             ListTile(
