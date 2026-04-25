@@ -12,6 +12,12 @@
   "settingsAccountSection": "Konto",
   "settingsGuest": "Gość",
   "settingsSignOut": "Wyloguj się",
+  "settingsNotificationsSection": "Powiadomienia",
+  "settingsNotificationsDailyReminder": "Codzienne przypomnienie",
+  "settingsNotificationsTime": "Godzina przypomnienia",
+  "settingsNotificationsDenied": "Włącz powiadomienia w ustawieniach systemu",
+  "settingsNotificationsOpenSettings": "Otwórz ustawienia",
+
   "settingsPrivacyPolicy": "Polityka prywatności",
   "settingsTerms": "Regulamin",
 
