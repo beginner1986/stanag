@@ -84,7 +84,7 @@ A blank Flutter app builds and runs on Android and web for all three flavours. P
 - [ ] Implement GoRouter with auth-gated routes
   - Unauthenticated → onboarding/lesson (anonymous allowed)
   - Registered → full app
-- [ ] Build bottom navigation bar: Home, Progress, Settings
+- [x] Build bottom navigation bar: Home, Progress, Settings
 - [ ] Build Settings screen:
   - Language toggle (PL/EN)
   - Notification toggle and time picker
