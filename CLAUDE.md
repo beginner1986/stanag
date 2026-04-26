@@ -27,7 +27,7 @@ flutter test
 flutter test test/widget_test.dart
 
 # Run on device/emulator (dev flavour)
-flutter run --dart-define=FLAVOR=dev
+flutter run --flavor dev --dart-define=FLAVOR=dev
 
 # Build APK
 flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
@@ -40,7 +40,29 @@ flutter build apk --flavor prod -t lib/main.dart --dart-define=FLAVOR=prod
 
 The app has three flavours: `dev`, `staging`, `prod`. The active flavour is passed at build time via `--dart-define=FLAVOR=<flavour>`. `main.dart` reads it with `String.fromEnvironment('FLAVOR', defaultValue: 'dev')` and selects the matching `firebase_options_<flavour>.dart`.
 
-The `firebase_options_*.dart` files contain secrets and are **not committed**. In CI they are restored from base64-encoded GitHub Actions secrets. Locally you must have your own copies.
+The `firebase_options_*.dart` files contain secrets and are **not committed**. In CI they are restored from base64-encoded GitHub Actions secrets. Locally you must have your own copies. Regenerate with:
+
+```bash
+flutterfire configure --project=stanag-dev     --out=lib/firebase_options_dev.dart     --platforms=android,web
+flutterfire configure --project=stanag-staging --out=lib/firebase_options_staging.dart --platforms=android,web
+flutterfire configure --project=stanag-prod    --out=lib/firebase_options_prod.dart    --platforms=android,web
+```
+
+On Android, `FirebaseInitProvider` auto-initialises Firebase from the flavour-specific `google-services.json` before Dart runs. `main.dart` then calls `Firebase.initializeApp(options: options)`. The `firebase_core_platform_interface` library checks that the API key in the options matches the already-initialised native app — they always match because both files come from the same Firebase project.
+
+#### google-services.json
+
+Each flavour has its own file under `android/app/src/<flavour>/google-services.json`, each pointing at the matching Firebase project:
+
+| File | Firebase project | Application ID |
+|---|---|---|
+| `src/dev/google-services.json` | `stanag-dev` | `com.example.stanag_app.dev` |
+| `src/staging/google-services.json` | `stanag-staging` | `com.example.stanag_app.staging` |
+| `src/prod/google-services.json` | `stanag-prod` | `com.example.stanag_app` |
+
+These files contain secrets and are **not committed**. The `com.google.gms.google-services` Gradle plugin automatically picks the flavour-specific file at build time.
+
+Each Firebase project has exactly one registered Android app — only the application ID that matches its flavour. Do not register the base ID (`com.example.stanag_app`) in the dev or staging projects.
 
 All Firebase services are in region `europe-central2` (Warsaw). Cloud Functions must also explicitly set this region — the default is `us-central1`.
 
@@ -81,7 +103,7 @@ Session writes (progress, streaks, daily plans) must be batched at the end of ea
 ### Current implementation status (Phase 1 mostly complete)
 
 Completed:
-- Firebase project setup with three flavours
+- Firebase project setup with three flavours, each with its own `google-services.json` and `firebase_options_*.dart`
 - Anonymous sign-in on launch + initial `users` document creation
 - Riverpod providers for auth and Firestore instances
 - Localisation scaffold (PL/EN `.arb` files, locale persistence)
