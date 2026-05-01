@@ -82,15 +82,15 @@ A blank Flutter app builds and runs on Android and web for all three flavours. P
 ### Navigation shell
 
 - [x] Implement GoRouter with auth-gated routes
-  - Unauthenticated → onboarding/lesson (anonymous allowed)
-  - Registered → full app
+  - Registered users redirected away from auth routes
+  - Anonymous → Home (onboarding route deferred to Phase 2 — no lesson player yet)
 - [x] Build bottom navigation bar: Home, Progress, Settings
 - [x] Build Settings screen:
   - Language toggle (PL/EN)
-  - Notification toggle and time picker
+  - Notification toggle and time picker (OS permission flow via `permission_handler`)
   - Sign-out
-  - Account info (email, account type)
-  - Link to privacy policy and terms of service
+  - Account info (email + account type: Free / Premium / Expired)
+  - Link to privacy policy and terms of service (via `url_launcher`)
 
 ### Premium entitlement
 

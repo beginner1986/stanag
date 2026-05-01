@@ -6,11 +6,6 @@ import 'package:stanag_app/repositories/firebase/firebase_user_repository.dart';
 import 'package:stanag_app/repositories/interfaces/user_repository.dart';
 import 'package:stanag_app/services/auth_service.dart';
 
-final authStateProvider = StreamProvider<User?>((ref) {
-  final firebaseAuth = ref.watch(firebaseAuthProvider);
-  return firebaseAuth.authStateChanges();
-});
-
 final authServiceProvider = Provider<AuthService>((ref) {
   final firebaseAuth = ref.watch(firebaseAuthProvider);
   return AuthService(firebaseAuth);
