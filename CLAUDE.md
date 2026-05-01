@@ -46,11 +46,23 @@ All Firebase services are in region `europe-central2` (Warsaw). Cloud Functions 
 
 ### State management — Riverpod
 
-The app uses Riverpod. The root widget is wrapped in `ProviderScope`. Providers live in `lib/providers/`. Services are injected via providers (e.g., `authServiceProvider`, `userServiceProvider`) rather than instantiated directly in widgets.
+The app uses Riverpod. The root widget is wrapped in `ProviderScope`. Providers live in `lib/providers/`. Services and repositories are injected via providers (e.g., `authServiceProvider`, `userRepositoryProvider`) rather than instantiated directly in widgets.
+
+### Repository layer
+
+Business logic never imports `cloud_firestore` or `firebase_storage` directly. All Firebase data and storage access goes through abstract interfaces in `lib/repositories/interfaces/`. Firebase-specific implementations live in `lib/repositories/firebase/` and are the only files permitted to import those SDKs (along with `lib/providers/firebase_providers.dart`, which vends the SDK instances into Riverpod).
+
+A CI script (`.github/scripts/check_repository_imports.sh`) enforces this boundary on every PR.
+
+Current interfaces:
+- `UserRepository` — Firestore `users` document creation. Implemented by `FirebaseUserRepository`.
+- `AudioStorageRepository` — audio file access via Firebase Storage. Implementation deferred to Phase 2.
+
+Pattern for adding new repositories: define the abstract interface first, implement in `lib/repositories/firebase/`, wire via Riverpod last.
 
 ### Authentication flow
 
-On first launch, `main()` calls `AuthService.signInAnonymously()` before `runApp()`. This silently creates a Firebase anonymous UID. `UserService.createUserDocumentIfNeeded()` then writes the initial `users` document to Firestore (cache-first, server fallback).
+On first launch, `main()` calls `AuthService.signInAnonymously()` before `runApp()`. This silently creates a Firebase anonymous UID. `FirebaseUserRepository.live().createUserDocumentIfNeeded()` then writes the initial `users` document to Firestore (cache-first, server fallback).
 
 The four user states are: `anonymous`, `registered_free`, `registered_premium`, `expired_premium`. Premium status is authoritative only via the JWT custom claim `is_premium` — set server-side by a Cloud Function webhook from RevenueCat. Never set premium state client-side.
 
@@ -88,6 +100,7 @@ Completed:
 - CI pipeline (lint, test, build on PRs to `main`/`develop`)
 - `UserState` enum and `userStateProvider` covering all four auth states
 - `SplashScreen` placeholder shown during auth state loading/error
+- Repository layer scaffold: `UserRepository` + `AudioStorageRepository` interfaces, `FirebaseUserRepository` implementation, CI import boundary check
 
 In progress / not yet built:
 - GoRouter navigation shell with auth-gated routes
