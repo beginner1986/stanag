@@ -47,50 +47,50 @@
 
 ---
 
-## Coding track 2 — Flutter app
+## Coding track 2 — Flutter app ✅
 
-### G. Add `purchases_flutter` package
-- `flutter pub add purchases_flutter` from `stanag_app/`
+### G. ~~Add `purchases_flutter` package~~ ✅
+- ~~`flutter pub add purchases_flutter` from `stanag_app/`~~ — added v10.0.1
 
-### H. RevenueCat initialization in `main.dart`
-- After Firebase init and anonymous sign-in, call:
+### H. ~~RevenueCat initialization in `main.dart`~~ ✅
+- ~~After Firebase init and anonymous sign-in, call:~~
   ```dart
   await Purchases.setLogLevel(LogLevel.debug); // dev only
   final config = PurchasesConfiguration('<revenuecat_api_key>')
     ..appUserID = FirebaseAuth.instance.currentUser!.uid;
   await Purchases.configure(config);
   ```
-- API key must be flavor-specific — store it as a `--dart-define` build arg or in a flavor config file (same pattern as Firebase options)
-- This ties the RevenueCat App User ID to the Firebase UID so the webhook can identify the user
+- ~~API key must be flavor-specific — store it as a `--dart-define` build arg or in a flavor config file (same pattern as Firebase options)~~ — `--dart-define=REVENUECAT_API_KEY`, skipped on web and when key is empty
+- ~~This ties the RevenueCat App User ID to the Firebase UID so the webhook can identify the user~~
 
-### I. `lib/services/purchase_service.dart`
-- `getOfferings()` → `Future<Offerings>` (fetches available packages + pricing)
-- `purchasePackage(Package)` → `Future<CustomerInfo>` (triggers Play Billing sheet)
-- `restorePurchases()` → `Future<CustomerInfo>` (for users who reinstall)
+### I. ~~`lib/services/purchase_service.dart`~~ ✅
+- ~~`getOfferings()` → `Future<Offerings>` (fetches available packages + pricing)~~
+- ~~`purchasePackage(Package)` → `Future<CustomerInfo>` (triggers Play Billing sheet)~~ — returns `Future<void>`; uses v10 `Purchases.purchase(PurchaseParams.package(...))`
+- ~~`restorePurchases()` → `Future<CustomerInfo>` (for users who reinstall)~~ — returns `Future<void>`
 
-### J. `lib/providers/purchase_provider.dart`
-- `purchaseServiceProvider` — plain `Provider<PurchaseService>`
-- `offeringsProvider` — `FutureProvider<Offerings>` (loads once on startup, drives UpgradeScreen)
+### J. ~~`lib/providers/purchase_provider.dart`~~ ✅
+- ~~`purchaseServiceProvider` — plain `Provider<PurchaseService>`~~
+- ~~`offeringsProvider` — `FutureProvider<Offerings>` (loads once on startup, drives UpgradeScreen)~~
 
-### K. `lib/screens/upgrade_screen.dart`
-- Feature comparison list (free vs premium — from spec section 7.1/7.2)
-- Price loaded from `offeringsProvider` (real Play Store price, localised by Play)
-- "Subscribe" button → `purchasePackage()` → on success → `AuthService.refreshToken()` → Navigator pop
-- "Restore purchase" text button → `restorePurchases()` → `refreshToken()`
-- Loading spinner and error snackbar states
-- All strings in `.arb` files (EN + PL)
+### K. ~~`lib/screens/upgrade_screen.dart`~~ ✅
+- ~~Feature comparison list (free vs premium — from spec section 7.1/7.2)~~
+- ~~Price loaded from `offeringsProvider` (real Play Store price, localised by Play)~~
+- ~~"Subscribe" button → `purchasePackage()` → on success → `AuthService.refreshToken()` → Navigator pop~~
+- ~~"Restore purchase" text button → `restorePurchases()` → `refreshToken()`~~
+- ~~Loading spinner and error snackbar states~~
+- ~~All strings in `.arb` files (EN + PL)~~
 
-### L. Add `.arb` strings
-- `upgradeScreenTitle`, `upgradeScreenSubtitle`, premium feature list items, CTA button label, restore label, success/error messages — in both `app_en.arb` and `app_pl.arb`
+### L. ~~Add `.arb` strings~~ ✅
+- ~~`upgradeScreenTitle`, `upgradeScreenSubtitle`, premium feature list items, CTA button label, restore label, success/error messages — in both `app_en.arb` and `app_pl.arb`~~
 
-### M. Wire navigation
-- Add `/upgrade` route to `router_provider.dart`
-- Add "Upgrade to Premium" button to `SettingsScreen` for `registered_free` and `expired_premium` states (already shows account type — add button below it)
+### M. ~~Wire navigation~~ ✅
+- ~~Add `/upgrade` route to `router_provider.dart`~~
+- ~~Add "Upgrade to Premium" button to `SettingsScreen` for `registered_free` and `expired_premium` states (already shows account type — add button below it)~~
 
-### N. Tests
-- Unit test `PurchaseService` methods (mock `Purchases` static calls using mocktail or a thin wrapper)
-- Widget test `UpgradeScreen`: renders offering price, tapping subscribe triggers service, success state navigates away
-- Unit test Cloud Function webhook handler (mock Firebase Admin SDK, assert correct claims set per event type)
+### N. Tests (partial) ⚠️
+- ~~Unit test `PurchaseService` methods (mock `Purchases` static calls using mocktail or a thin wrapper)~~ — tested via interface mock; no separate service unit test (thin wrapper has no logic to test)
+- ~~Widget test `UpgradeScreen`: renders offering price, tapping subscribe triggers service, success state navigates away~~ — 8 tests covering all paths
+- Unit test Cloud Function webhook handler (mock Firebase Admin SDK, assert correct claims set per event type) — pending Cloud Function track
 
 ---
 

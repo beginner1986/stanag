@@ -186,5 +186,74 @@
   "resetPasswordUserNotFound": "No account found with this email.",
   "@resetPasswordUserNotFound": {
     "description": "Error shown when sending a reset email to an unregistered address"
+  },
+
+  "settingsUpgradeToPremium": "Upgrade to Premium",
+  "@settingsUpgradeToPremium": {
+    "description": "Button label in settings that opens the upgrade screen"
+  },
+
+  "upgradeTitle": "Go Premium",
+  "@upgradeTitle": {
+    "description": "AppBar title on the upgrade screen"
+  },
+  "upgradeSubtitle": "Unlock everything you need to pass STANAG 6001",
+  "@upgradeSubtitle": {
+    "description": "Subtitle tagline on the upgrade screen"
+  },
+  "upgradeMockExamsTitle": "Timed Mock Exams",
+  "@upgradeMockExamsTitle": {
+    "description": "Premium feature: mock exams — title"
+  },
+  "upgradeMockExamsDesc": "Full reading and listening modules, auto-graded",
+  "@upgradeMockExamsDesc": {
+    "description": "Premium feature: mock exams — description"
+  },
+  "upgradeUnlimitedTitle": "Unlimited Exercises",
+  "@upgradeUnlimitedTitle": {
+    "description": "Premium feature: unlimited exercises — title"
+  },
+  "upgradeUnlimitedDesc": "No daily cap — practice as much as you need",
+  "@upgradeUnlimitedDesc": {
+    "description": "Premium feature: unlimited exercises — description"
+  },
+  "upgradeAdFreeTitle": "Ad-Free",
+  "@upgradeAdFreeTitle": {
+    "description": "Premium feature: no ads — title"
+  },
+  "upgradeAdFreeDesc": "No interruptions during your sessions",
+  "@upgradeAdFreeDesc": {
+    "description": "Premium feature: no ads — description"
+  },
+  "upgradeOfflineTitle": "Offline Content Packs",
+  "@upgradeOfflineTitle": {
+    "description": "Premium feature: offline packs — title"
+  },
+  "upgradeOfflineDesc": "Download and study without an internet connection",
+  "@upgradeOfflineDesc": {
+    "description": "Premium feature: offline packs — description"
+  },
+  "upgradePricePerMonth": "{price} / month",
+  "@upgradePricePerMonth": {
+    "description": "Formatted price shown below the subscribe button",
+    "placeholders": {
+      "price": { "type": "String" }
+    }
+  },
+  "upgradeSubscribeButton": "Subscribe",
+  "@upgradeSubscribeButton": {
+    "description": "Primary CTA button on the upgrade screen"
+  },
+  "upgradeRestoreButton": "Restore purchase",
+  "@upgradeRestoreButton": {
+    "description": "Secondary button to restore a previous purchase"
+  },
+  "upgradeSuccessMessage": "Welcome to Premium!",
+  "@upgradeSuccessMessage": {
+    "description": "Snackbar shown after a successful purchase or restore"
+  },
+  "upgradeErrorMessage": "Purchase failed. Please try again.",
+  "@upgradeErrorMessage": {
+    "description": "Snackbar shown when a purchase or restore fails"
   }
 }

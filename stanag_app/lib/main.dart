@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:stanag_app/providers/router_provider.dart';
 import 'package:stanag_app/repositories/firebase/firebase_user_repository.dart';
 import 'package:stanag_app/services/auth_service.dart';
@@ -13,6 +15,8 @@ import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/providers/locale_provider.dart';
 
 const String flavor = String.fromEnvironment('FLAVOR', defaultValue: 'dev');
+const String _revenueCatApiKey =
+    String.fromEnvironment('REVENUECAT_API_KEY', defaultValue: '');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +34,13 @@ Future<void> main() async {
   await AuthService(auth).signInAnonymously();
 
   final user = auth.currentUser;
+
+  if (_revenueCatApiKey.isNotEmpty && !kIsWeb) {
+    if (flavor == 'dev') await Purchases.setLogLevel(LogLevel.debug);
+    final config = PurchasesConfiguration(_revenueCatApiKey)
+      ..appUserID = user?.uid;
+    await Purchases.configure(config);
+  }
   if (user != null) {
     final deviceLang =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
@@ -154,6 +155,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: Text(isRegistered && email != null ? email : l.settingsGuest),
             subtitle: accountTypeLabel != null ? Text(accountTypeLabel) : null,
           ),
+          if (userStateValue == UserState.registeredFree ||
+              userStateValue == UserState.expiredPremium)
+            ListTile(
+              leading: const Icon(Icons.star_outline),
+              title: Text(l.settingsUpgradeToPremium),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/upgrade'),
+            ),
           if (isRegistered)
             ListTile(
               leading: const Icon(Icons.logout),

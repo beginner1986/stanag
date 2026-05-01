@@ -51,5 +51,23 @@
   "resetPasswordDescription": "Podaj swój adres e-mail, a wyślemy Ci link do resetowania hasła.",
   "resetPasswordButton": "Wyślij link resetujący",
   "resetPasswordSuccess": "Link wysłany. Sprawdź swoją skrzynkę.",
-  "resetPasswordUserNotFound": "Nie znaleziono konta z tym adresem e-mail."
+  "resetPasswordUserNotFound": "Nie znaleziono konta z tym adresem e-mail.",
+
+  "settingsUpgradeToPremium": "Kup Premium",
+
+  "upgradeTitle": "Przejdź na Premium",
+  "upgradeSubtitle": "Odblokuj wszystko, czego potrzebujesz, żeby zdać STANAG 6001",
+  "upgradeMockExamsTitle": "Próbne egzaminy",
+  "upgradeMockExamsDesc": "Pełny egzamin z czytania i słuchania — automatycznie oceniany",
+  "upgradeUnlimitedTitle": "Nieograniczone ćwiczenia",
+  "upgradeUnlimitedDesc": "Żaden dzienny limit Cię nie zatrzyma",
+  "upgradeAdFreeTitle": "Bez reklam",
+  "upgradeAdFreeDesc": "Żadnych przerw podczas ćwiczeń",
+  "upgradeOfflineTitle": "Pakiety offline",
+  "upgradeOfflineDesc": "Pobierz materiały i ucz się bez internetu",
+  "upgradePricePerMonth": "{price} / miesiąc",
+  "upgradeSubscribeButton": "Subskrybuj",
+  "upgradeRestoreButton": "Przywróć zakup",
+  "upgradeSuccessMessage": "Witaj w Premium!",
+  "upgradeErrorMessage": "Zakup nie powiódł się. Spróbuj ponownie."
 }

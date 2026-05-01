@@ -11,6 +11,7 @@ import 'package:stanag_app/screens/progress_screen.dart';
 import 'package:stanag_app/screens/register_screen.dart';
 import 'package:stanag_app/screens/settings_screen.dart';
 import 'package:stanag_app/screens/splash_screen.dart';
+import 'package:stanag_app/screens/upgrade_screen.dart';
 
 const _authRoutes = {'/register', '/login', '/forgot-password'};
 
@@ -79,6 +80,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/forgot-password',
         builder: (_, _) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/upgrade',
+        builder: (_, _) => const UpgradeScreen(),
       ),
     ],
   );
