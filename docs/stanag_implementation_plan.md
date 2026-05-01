@@ -106,8 +106,8 @@ A blank Flutter app builds and runs on Android and web for all three flavours. P
 
 The repository pattern is introduced in Phase 1 to establish the structure before any Firebase-specific data or storage calls are written in Phase 2. Starting here — with the lowest-risk interface — means every subsequent repository follows the same pattern from day one rather than being retrofitted later.
 
-- [ ] Create `lib/repositories/interfaces/` and `lib/repositories/firebase/` folder structure
-- [ ] Define `AudioStorageRepository` abstract interface:
+- [x] Create `lib/repositories/interfaces/` and `lib/repositories/firebase/` folder structure
+- [x] Define `AudioStorageRepository` abstract interface:
   ```dart
   abstract class AudioStorageRepository {
     Future<String> getAudioUrl(String exerciseId);
@@ -115,9 +115,7 @@ The repository pattern is introduced in Phase 1 to establish the structure befor
     Future<void> deleteAudio(String exerciseId);
   }
   ```
-- [ ] Implement `FirebaseAudioStorageRepository` — wraps Firebase Storage SDK calls
-- [ ] Register via Riverpod: `Provider<AudioStorageRepository>((ref) => FirebaseAudioStorageRepository())`
-- [ ] Verify no code outside `lib/repositories/firebase/` imports `firebase_storage` directly
+- [x] Verify no code outside `lib/repositories/firebase/` imports `firebase_storage` directly
 
 ### Definition of done
 

@@ -13,7 +13,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/providers/locale_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 const String flavor = String.fromEnvironment('FLAVOR', defaultValue: 'dev');
 
@@ -29,9 +28,8 @@ Future<void> main() async {
   await Firebase.initializeApp(options: options);
 
   final auth = FirebaseAuth.instance;
-  final firestore = FirebaseFirestore.instance;
 
-  await AuthService(FirebaseAuth.instance).signInAnonymously();
+  await AuthService(auth).signInAnonymously();
 
   final user = auth.currentUser;
   if (user != null) {
@@ -39,7 +37,7 @@ Future<void> main() async {
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     final interfaceLang = deviceLang == 'pl' ? 'pl' : 'en';
     try {
-      await FirebaseUserRepository(firestore).createUserDocumentIfNeeded(
+      await FirebaseUserRepository.live().createUserDocumentIfNeeded(
         user.uid,
         interfaceLang: interfaceLang,
       );

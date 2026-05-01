@@ -6,6 +6,9 @@ class FirebaseUserRepository implements UserRepository {
 
   FirebaseUserRepository(this._firestore);
 
+  factory FirebaseUserRepository.live() =>
+      FirebaseUserRepository(FirebaseFirestore.instance);
+
   @override
   Future<void> createUserDocumentIfNeeded(
     String uid, {
