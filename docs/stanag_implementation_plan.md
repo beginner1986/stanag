@@ -1,7 +1,7 @@
 # STANAG 6001 English Learning App — Implementation Plan
 
-**Version:** 1.0  
-**Date:** April 2026  
+**Version:** 1.1  
+**Date:** May 2026  
 **Estimated duration:** ~20 weeks  
 **Team:** 1 developer (Flutter/Firebase) + 1 methodology partner (content)  
 
@@ -102,9 +102,24 @@ A blank Flutter app builds and runs on Android and web for all three flavours. P
 - [ ] Build upgrade screen: feature list, pricing, Google Play Billing sheet
 - [ ] Force JWT token refresh on client immediately after purchase confirmation
 
+### Repository scaffold
+
+The repository pattern is introduced in Phase 1 to establish the structure before any Firebase-specific data or storage calls are written in Phase 2. Starting here — with the lowest-risk interface — means every subsequent repository follows the same pattern from day one rather than being retrofitted later.
+
+- [x] Create `lib/repositories/interfaces/` and `lib/repositories/firebase/` folder structure
+- [x] Define `AudioStorageRepository` abstract interface:
+  ```dart
+  abstract class AudioStorageRepository {
+    Future<String> getAudioUrl(String exerciseId);
+    Future<void> uploadAudio(String exerciseId, Uint8List bytes);
+    Future<void> deleteAudio(String exerciseId);
+  }
+  ```
+- [x] Verify no code outside `lib/repositories/firebase/` imports `firebase_storage` directly
+
 ### Definition of done
 
-Full auth loop works end-to-end: anonymous launch → day 1 → sign-up (anonymous UID preserved) → login → password reset → premium upgrade → premium features gated correctly. All routes auth-gated. Settings screen functional.
+Full auth loop works end-to-end: anonymous launch → day 1 → sign-up (anonymous UID preserved) → login → password reset → premium upgrade → premium features gated correctly. All routes auth-gated. Settings screen functional. `AudioStorageRepository` interface and Firebase implementation in place; no direct `firebase_storage` imports outside the repository layer.
 
 ---
 
@@ -129,7 +144,7 @@ The admin panel is a Flutter web app, password-protected behind a Firebase Auth 
 - [ ] Build level and unit management (create, edit, reorder, publish/unpublish)
 - [ ] Build lesson editor (create, edit, reorder within unit, publish/unpublish)
 - [ ] Build exercise editor — all five exercise types with type-appropriate form fields
-- [ ] Build audio upload interface — file picker, upload to Firebase Storage, TTS/recorded toggle, URL stored in exercise document
+- [ ] Build audio upload interface — file picker, upload via `AudioStorageRepository`, TTS/recorded toggle, URL stored in exercise document
 - [ ] Build publish/unpublish toggle with preview mode (view content as a user would)
 - [ ] Build daily motivational quote editor (day number, PL text, EN text, author)
 
@@ -159,13 +174,37 @@ All widgets must:
 
 ### Audio and offline
 
-- [ ] Implement audio pre-caching — on app open over Wi-Fi, fetch and cache today's audio files locally
+- [ ] Implement audio pre-caching — on app open over Wi-Fi, fetch URLs via `AudioStorageRepository`, download and cache files locally
 - [ ] Enable Firestore offline persistence for lesson and exercise content
 - [ ] Verify offline lesson playback works after airplane mode enabled
 
+### Data repositories (Phase 2)
+
+Introduced alongside the features that need them — not upfront. Each interface is defined first, the Firebase implementation written second, and Riverpod wired last. No business logic code imports `cloud_firestore` directly.
+
+- [ ] Define `LessonRepository` abstract interface:
+  ```dart
+  abstract class LessonRepository {
+    Future<List<Lesson>> getLessonsForUnit(String unitId);
+    Future<Exercise> getExercise(String exerciseId);
+  }
+  ```
+- [ ] Implement `FirebaseLessonRepository` — wraps Firestore reads for lesson and exercise content
+- [ ] Register via Riverpod; update lesson player to consume `LessonRepository` only
+- [ ] Define `ProgressRepository` abstract interface:
+  ```dart
+  abstract class ProgressRepository {
+    Future<void> saveSessionResult(SessionResult result);
+    Future<List<UserProgress>> getUserProgress(String uid);
+  }
+  ```
+- [ ] Implement `FirebaseProgressRepository` — wraps batch writes to `user_progress`, `user_exercise_log`, `daily_plans`
+- [ ] Register via Riverpod; update session end batch write to go through `ProgressRepository`
+- [ ] Verify no code outside `lib/repositories/firebase/` imports `cloud_firestore` directly
+
 ### Definition of done
 
-Methodology partner can log into admin panel and create a complete lesson (unit → lesson → 5 exercises of different types, with audio). A user can open the app, complete that lesson, and see a result screen. Progress is written to Firestore. Anonymous user sees sign-up prompt. Audio plays offline after initial cache.
+Methodology partner can log into admin panel and create a complete lesson (unit → lesson → 5 exercises of different types, with audio). A user can open the app, complete that lesson, and see a result screen. Progress is written to Firestore. Anonymous user sees sign-up prompt. Audio plays offline after initial cache. `LessonRepository` and `ProgressRepository` interfaces in place; no direct `cloud_firestore` imports outside the repository layer.
 
 ---
 
@@ -208,6 +247,19 @@ Methodology partner can log into admin panel and create a complete lesson (unit 
   - Localised copy (PL/EN)
   - Respect system notification permissions
 
+### Data repositories (Phase 3)
+
+- [ ] Define `UserRepository` abstract interface:
+  ```dart
+  abstract class UserRepository {
+    Future<AppUser> getUser(String uid);
+    Future<void> updateUser(AppUser user);
+  }
+  ```
+- [ ] Implement `FirebaseUserRepository` — wraps reads and writes to `users` and `user_streaks` collections
+- [ ] Register via Riverpod; update progress screen and streak logic to consume `UserRepository` only
+- [ ] Verify all four repository interfaces are complete and no business logic imports Firebase SDKs directly
+
 ### Progress screen
 
 - [ ] Build progress screen:
@@ -234,7 +286,7 @@ Methodology partner can log into admin panel and create a complete lesson (unit 
 
 ### Definition of done
 
-A registered free user opens the app each day, sees today's plan, completes lessons, earns XP, sees streak update, and receives a push notification reminder. After 10 exercises, upgrade prompt appears. Streak milestone animation fires on day 7. Progress screen shows correct data. Premium user sees per-skill analytics and no ads.
+A registered free user opens the app each day, sees today's plan, completes lessons, earns XP, sees streak update, and receives a push notification reminder. After 10 exercises, upgrade prompt appears. Streak milestone animation fires on day 7. Progress screen shows correct data. Premium user sees per-skill analytics and no ads. All four repository interfaces (`AudioStorageRepository`, `LessonRepository`, `ProgressRepository`, `UserRepository`) are complete with Firebase implementations; repository layer is the only code that touches Firebase SDKs for data and storage.
 
 ---
 
@@ -256,6 +308,7 @@ A registered free user opens the app each day, sees today's plan, completes less
 - [ ] Unit tests: streak logic (increment, miss, break, longest streak update)
 - [ ] Unit tests: daily plan generator (lesson assignment, edge cases)
 - [ ] Unit tests: batch write logic (correct documents written, correct values)
+- [ ] Unit tests: each repository interface with a mock implementation — verify business logic is fully decoupled from Firebase SDKs
 - [ ] Widget tests: all five exercise widgets (render, interaction, feedback animation)
 - [ ] Widget tests: lesson player (progress bar, navigation, completion trigger)
 - [ ] Widget tests: session result screen (score display, sign-up prompt visibility)
@@ -329,6 +382,11 @@ App is live on Google Play Store (production) and Firebase Hosting. All critical
 The following dependencies determine scheduling risk. If any of these slip, downstream phases are affected.
 
 ```
+AudioStorageRepository interface (Phase 1)
+  → LessonRepository + ProgressRepository (Phase 2)
+    → UserRepository (Phase 3)
+      → Repository mock tests (Phase 4)
+
 Controlled vocabulary agreement (Phase 2 start)
   → Admin panel build (Phase 2, weeks 6–8)
     → Methodology partner content entry (Phase 2, weeks 8–11)

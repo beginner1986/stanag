@@ -1,21 +1,21 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stanag_app/services/user_service.dart';
+import 'package:stanag_app/repositories/firebase/firebase_user_repository.dart';
 
 void main() {
-  group('UserService.createUserDocumentIfNeeded', () {
+  group('FirebaseUserRepository.createUserDocumentIfNeeded', () {
     late FakeFirebaseFirestore fakeFirestore;
-    late UserService userService;
+    late FirebaseUserRepository repository;
 
     const uid = 'test-uid-123';
 
     setUp(() {
       fakeFirestore = FakeFirebaseFirestore();
-      userService = UserService(fakeFirestore);
+      repository = FirebaseUserRepository(fakeFirestore);
     });
 
     test('creates document with correct fields on first launch', () async {
-      await userService.createUserDocumentIfNeeded(uid);
+      await repository.createUserDocumentIfNeeded(uid);
 
       final doc = await fakeFirestore.collection('users').doc(uid).get();
       expect(doc.exists, isTrue);
@@ -30,14 +30,14 @@ void main() {
     });
 
     test('uses detected interface_lang when provided', () async {
-      await userService.createUserDocumentIfNeeded(uid, interfaceLang: 'en');
+      await repository.createUserDocumentIfNeeded(uid, interfaceLang: 'en');
 
       final doc = await fakeFirestore.collection('users').doc(uid).get();
       expect(doc.data()!['interface_lang'], 'en');
     });
 
     test('defaults interface_lang to pl', () async {
-      await userService.createUserDocumentIfNeeded(uid);
+      await repository.createUserDocumentIfNeeded(uid);
 
       final doc = await fakeFirestore.collection('users').doc(uid).get();
       expect(doc.data()!['interface_lang'], 'pl');
@@ -50,7 +50,7 @@ void main() {
         'custom_field': 'preserved',
       });
 
-      await userService.createUserDocumentIfNeeded(uid);
+      await repository.createUserDocumentIfNeeded(uid);
 
       final doc = await fakeFirestore.collection('users').doc(uid).get();
       expect(doc.data()!['is_anonymous'], isFalse);

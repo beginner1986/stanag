@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
+import 'package:stanag_app/providers/firebase_providers.dart';
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 
