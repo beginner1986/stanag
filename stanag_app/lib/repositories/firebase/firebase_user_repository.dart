@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:stanag_app/repositories/interfaces/user_repository.dart';
 
-class UserService {
+class FirebaseUserRepository implements UserRepository {
   final FirebaseFirestore _firestore;
 
-  UserService(this._firestore);
+  FirebaseUserRepository(this._firestore);
 
+  @override
   Future<void> createUserDocumentIfNeeded(
     String uid, {
     String interfaceLang = 'pl',

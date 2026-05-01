@@ -4,8 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/screens/language_test_screen.dart';
 import 'package:stanag_app/screens/splash_screen.dart';
+import 'package:stanag_app/repositories/firebase/firebase_user_repository.dart';
 import 'package:stanag_app/services/auth_service.dart';
-import 'package:stanag_app/services/user_service.dart';
 import 'firebase_options_dev.dart' as dev;
 import 'firebase_options_staging.dart' as staging;
 import 'firebase_options_prod.dart' as prod;
@@ -39,7 +39,7 @@ Future<void> main() async {
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     final interfaceLang = deviceLang == 'pl' ? 'pl' : 'en';
     try {
-      await UserService(firestore).createUserDocumentIfNeeded(
+      await FirebaseUserRepository(firestore).createUserDocumentIfNeeded(
         user.uid,
         interfaceLang: interfaceLang,
       );
