@@ -1,8 +1,8 @@
 # STANAG 6001 English Learning App — Product Specification
 
 **Version:** 1.1  
-**Date:** April 2026  
-**Status:** Implementation in progress — Phase 0  
+**Date:** May 2026  
+**Status:** Implementation in progress — Phase 1  
 
 ---
 
@@ -90,6 +90,60 @@ The Android app and web version share the same Flutter codebase. Bug fixes and f
 | Audio playback | just_audio | TTS and recorded audio exercise delivery |
 | Cloud Functions | Firebase Cloud Functions (Node.js) | Server-side logic: daily plan generation, premium webhooks, admin writes |
 
+### Architecture: repository pattern
+
+The app uses a repository pattern to decouple business logic from Firebase-specific SDKs. This is the primary structural decision enabling future migration away from Firebase services without rewriting domain logic.
+
+**Principle:** Riverpod providers and all business logic (SR algorithm, streak calculation, daily plan logic) depend only on abstract repository interfaces. Firebase is one implementation. A self-hosted REST API backend would be another — swapped in one place, the provider registration.
+
+**Repository structure:**
+
+```
+lib/
+  repositories/
+    interfaces/
+      audio_storage_repository.dart   // abstract class
+      user_repository.dart
+      lesson_repository.dart
+      progress_repository.dart
+    firebase/
+      firebase_audio_storage_repository.dart
+      firebase_user_repository.dart
+      firebase_lesson_repository.dart
+      firebase_progress_repository.dart
+```
+
+**Interfaces:**
+
+```dart
+// Storage
+abstract class AudioStorageRepository {
+  Future<String> getAudioUrl(String exerciseId);
+  Future<void> uploadAudio(String exerciseId, Uint8List bytes);
+  Future<void> deleteAudio(String exerciseId);
+}
+
+// Data
+abstract class ProgressRepository {
+  Future<void> saveSessionResult(SessionResult result);
+  Future<List<UserProgress>> getUserProgress(String uid);
+}
+
+abstract class LessonRepository {
+  Future<List<Lesson>> getLessonsForUnit(String unitId);
+  Future<Exercise> getExercise(String exerciseId);
+}
+
+abstract class UserRepository {
+  Future<AppUser> getUser(String uid);
+  Future<void> updateUser(AppUser user);
+}
+```
+
+**Scope of abstraction:** Only the services with material cost-scaling risk are abstracted — Firestore (user data reads/writes) and Firebase Storage (audio files). Firebase Auth, FCM, RevenueCat, and AdMob are called directly; they have no cost-scaling problem at realistic v1/v2 user volumes.
+
+**Implementation cadence:** Repository interfaces are introduced alongside the feature that needs them, not upfront. The audio storage repository is created first (Phase 1, lowest risk). Data repositories are added one at a time during Phase 2 as each feature is built.
+
 ### Firebase project configuration
 
 - **Plan:** Blaze (pay-as-you-go). Required for Firebase Storage access.
@@ -155,7 +209,7 @@ Individual tasks within a lesson.
 | `sort_order` | int | Sequence within the lesson |
 | `prompt_pl` | string | Instruction in Polish |
 | `prompt_en` | string | Instruction in English |
-| `audio_url` | string | Firebase Storage URL for audio file |
+| `audio_url` | string | Storage URL for audio file — implementation-agnostic (Firebase Storage in v1; self-hosted MinIO in future) |
 | `audio_source` | string | `tts` or `recorded` |
 | `options` | JSON | Exercise-type-specific option structure |
 | `correct_answer` | string | Answer key |
@@ -559,7 +613,7 @@ The app targets 80% online usage. Full offline-first architecture is not require
 
 - Firestore offline persistence enabled — lesson content and user progress cached automatically.
 - Audio files for today's lesson pre-fetched on app open while on Wi-Fi. Stored in local file cache.
-- Once a user downloads an audio file, it is never re-downloaded — aggressive local caching to minimise Firebase Storage egress costs.
+- Once a user downloads an audio file, it is never re-downloaded — aggressive local caching to minimise storage egress costs regardless of provider.
 - Premium users can manually trigger a download of a full offline content pack (multiple days of lessons and audio).
 - On reconnection after offline session: Firestore pending writes sync automatically; no manual reconciliation needed.
 
@@ -628,7 +682,30 @@ At 2,000 daily active users (beyond v1 launch expectations):
 
 By this user volume, AdMob and premium subscription revenue should substantially exceed infrastructure cost.
 
-### 15.3 Operational responsibilities
+### 15.3 Migration triggers
+
+The repository pattern (see section 4) means Firebase services can be replaced independently without changing business logic. Two metrics define when migration becomes cost-justified:
+
+**Trigger 1 — Firestore writes crossing ~$50/month** (~2,500–3,000 DAU). At this point, migrating user data to PostgreSQL on a self-hosted VPS eliminates the primary scaling cost. Firestore's document model maps cleanly to relational tables; the schema requires no structural changes.
+
+**Trigger 2 — Firebase Storage egress spikes from new user audio downloads.** A wave of new users simultaneously downloading audio files can generate significant egress cost at Google Cloud rates ($0.08–0.12/GB). Migration target: self-hosted **MinIO** on the existing VPS. MinIO is S3-compatible, already familiar from prior projects, and the total STANAG Level 1 audio dataset is bounded (estimated 1–2.5GB for all exercises). Egress from VPS is covered by existing bandwidth allowance.
+
+**Services not targeted for migration:** Firebase Auth (free to 50,000 MAU, no ops burden), FCM (free, no replacement benefit), RevenueCat, AdMob.
+
+### 15.4 Self-hosted audio storage: MinIO vs Backblaze B2
+
+If VPS disk pressure makes self-hosting audio impractical at migration time, **Backblaze B2** is the recommended alternative. B2 is S3-compatible (same MinIO client code works) and benefits from a Cloudflare bandwidth alliance — egress from B2 through Cloudflare is free, making effective egress cost $0 for cached audio files. Decision point: if VPS disk headroom is comfortable at migration time, use MinIO. If disk is under pressure from the database, use B2 + Cloudflare.
+
+| | MinIO (self-hosted) | Backblaze B2 |
+|---|---|---|
+| Storage cost | VPS disk (already provisioned) | $0.006/GB/month |
+| Egress cost | VPS bandwidth allowance | $0.01/GB ($0 via Cloudflare CDN) |
+| Ops burden | Managed alongside existing VPS workloads | Zero |
+| Scalability | Bounded by VPS disk | Effectively unlimited |
+| S3 compatibility | Full | Full |
+| Recommendation | Preferred if disk headroom available | Preferred if CDN or disk pressure needed |
+
+### 15.5 Operational responsibilities
 
 All Firebase costs are managed by the product owners. A $5/month budget alert is configured from day one. Monthly cost review aligned with content update cadence.
 
@@ -654,6 +731,7 @@ All Firebase costs are managed by the product owners. A $5/month budget alert is
 - Bottom navigation shell: Home, Progress, Settings
 - RevenueCat integration and premium upgrade flow
 - Cloud Function: premium webhook → JWT custom claim
+- **Repository scaffold: define `AudioStorageRepository` interface and Firebase implementation** — first and lowest-risk repository; establishes the pattern before Phase 2 content work begins
 
 ### Phase 2 — Content engine and lesson player
 
@@ -666,6 +744,8 @@ All Firebase costs are managed by the product owners. A $5/month budget alert is
 - Batch write of session data to Firestore
 - Audio pre-caching for offline use
 - Firestore offline persistence enabled
+- **`LessonRepository` interface and Firebase implementation** — introduced when building the lesson player; exercise and content fetching goes through this interface from day one
+- **`ProgressRepository` interface and Firebase implementation** — introduced when building session batch writes; all writes to `user_progress`, `user_exercise_log`, `daily_plans` go through this interface
 
 ### Phase 3 — Daily loop, progress and motivation
 
@@ -680,6 +760,7 @@ All Firebase costs are managed by the product owners. A $5/month budget alert is
 - Progress screen: level completion, unit breakdown, per-skill analytics (premium)
 - Course completion screen: three-branch flow
 - AdMob integration with content filters
+- **`UserRepository` interface and Firebase implementation** — introduced when building the progress screen and streak logic; all reads/writes to `users` and `user_streaks` go through this interface
 
 ### Phase 4 — Polish, testing and launch
 
@@ -719,6 +800,7 @@ All Firebase costs are managed by the product owners. A $5/month budget alert is
 - Anonymised user statistics comparison (opt-in): how a user's progress compares to all users at the same course day
 - Streak freeze tokens
 - iOS app
+- **Backend migration (if cost triggers met):** swap Firebase repository implementations for self-hosted REST API (PostgreSQL on VPS) and MinIO/Backblaze B2 for audio storage. No business logic changes required — repository interfaces remain identical. Migration triggered when Firestore write costs exceed ~$50/month or Storage egress spikes indicate scale.
 
 ---
 
@@ -790,7 +872,10 @@ All Firebase costs are managed by the product owners. A $5/month budget alert is
 | AdMob | Google's mobile advertising platform |
 | Blaze | Firebase's pay-as-you-go pricing plan |
 | `europe-central2` | Google Cloud region in Warsaw, Poland; chosen for lowest latency to Polish users and strongest RODO data residency position |
+| Repository pattern | Architectural pattern that decouples business logic from data source implementations behind abstract interfaces |
+| MinIO | S3-compatible self-hosted object storage; used for audio file storage on VPS at migration |
+| Backblaze B2 | Managed S3-compatible object storage with free egress via Cloudflare; alternative to MinIO if VPS disk pressure prevents self-hosting |
 
 ---
 
-*This document reflects decisions made as of April 2026. It should be updated when significant product decisions change.*
+*This document reflects decisions made as of May 2026. It should be updated when significant product decisions change.*

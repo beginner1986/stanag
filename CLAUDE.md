@@ -27,7 +27,7 @@ flutter test
 flutter test test/widget_test.dart
 
 # Run on device/emulator (dev flavour)
-flutter run --dart-define=FLAVOR=dev
+flutter run --flavor dev --dart-define=FLAVOR=dev
 
 # Build APK
 flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
@@ -40,17 +40,51 @@ flutter build apk --flavor prod -t lib/main.dart --dart-define=FLAVOR=prod
 
 The app has three flavours: `dev`, `staging`, `prod`. The active flavour is passed at build time via `--dart-define=FLAVOR=<flavour>`. `main.dart` reads it with `String.fromEnvironment('FLAVOR', defaultValue: 'dev')` and selects the matching `firebase_options_<flavour>.dart`.
 
-The `firebase_options_*.dart` files contain secrets and are **not committed**. In CI they are restored from base64-encoded GitHub Actions secrets. Locally you must have your own copies.
+The `firebase_options_*.dart` files contain secrets and are **not committed**. In CI they are restored from base64-encoded GitHub Actions secrets. Locally you must have your own copies. Regenerate with:
+
+```bash
+flutterfire configure --project=stanag-dev     --out=lib/firebase_options_dev.dart     --platforms=android,web
+flutterfire configure --project=stanag-staging --out=lib/firebase_options_staging.dart --platforms=android,web
+flutterfire configure --project=stanag-prod    --out=lib/firebase_options_prod.dart    --platforms=android,web
+```
+
+On Android, `FirebaseInitProvider` auto-initialises Firebase from the flavour-specific `google-services.json` before Dart runs. `main.dart` then calls `Firebase.initializeApp(options: options)`. The `firebase_core_platform_interface` library checks that the API key in the options matches the already-initialised native app — they always match because both files come from the same Firebase project.
+
+#### google-services.json
+
+Each flavour has its own file under `android/app/src/<flavour>/google-services.json`, each pointing at the matching Firebase project:
+
+| File | Firebase project | Application ID |
+|---|---|---|
+| `src/dev/google-services.json` | `stanag-dev` | `com.example.stanag_app.dev` |
+| `src/staging/google-services.json` | `stanag-staging` | `com.example.stanag_app.staging` |
+| `src/prod/google-services.json` | `stanag-prod` | `com.example.stanag_app` |
+
+These files contain secrets and are **not committed**. The `com.google.gms.google-services` Gradle plugin automatically picks the flavour-specific file at build time.
+
+Each Firebase project has exactly one registered Android app — only the application ID that matches its flavour. Do not register the base ID (`com.example.stanag_app`) in the dev or staging projects.
 
 All Firebase services are in region `europe-central2` (Warsaw). Cloud Functions must also explicitly set this region — the default is `us-central1`.
 
 ### State management — Riverpod
 
-The app uses Riverpod. The root widget is wrapped in `ProviderScope`. Providers live in `lib/providers/`. Services are injected via providers (e.g., `authServiceProvider`, `userServiceProvider`) rather than instantiated directly in widgets.
+The app uses Riverpod. The root widget is wrapped in `ProviderScope`. Providers live in `lib/providers/`. Services and repositories are injected via providers (e.g., `authServiceProvider`, `userRepositoryProvider`) rather than instantiated directly in widgets.
+
+### Repository layer
+
+Business logic never imports `cloud_firestore` or `firebase_storage` directly. All Firebase data and storage access goes through abstract interfaces in `lib/repositories/interfaces/`. Firebase-specific implementations live in `lib/repositories/firebase/` and are the only files permitted to import those SDKs (along with `lib/providers/firebase_providers.dart`, which vends the SDK instances into Riverpod).
+
+A CI script (`.github/scripts/check_repository_imports.sh`) enforces this boundary on every PR.
+
+Current interfaces:
+- `UserRepository` — Firestore `users` document creation. Implemented by `FirebaseUserRepository`.
+- `AudioStorageRepository` — audio file access via Firebase Storage. Implementation deferred to Phase 2.
+
+Pattern for adding new repositories: define the abstract interface first, implement in `lib/repositories/firebase/`, wire via Riverpod last.
 
 ### Authentication flow
 
-On first launch, `main()` calls `AuthService.signInAnonymously()` before `runApp()`. This silently creates a Firebase anonymous UID. `UserService.createUserDocumentIfNeeded()` then writes the initial `users` document to Firestore (cache-first, server fallback).
+On first launch, `main()` calls `AuthService.signInAnonymously()` before `runApp()`. This silently creates a Firebase anonymous UID. `FirebaseUserRepository.live().createUserDocumentIfNeeded()` then writes the initial `users` document to Firestore (cache-first, server fallback).
 
 The four user states are: `anonymous`, `registered_free`, `registered_premium`, `expired_premium`. Premium status is authoritative only via the JWT custom claim `is_premium` — set server-side by a Cloud Function webhook from RevenueCat. Never set premium state client-side.
 
@@ -78,19 +112,71 @@ Premium-gated content (`mock_exams`) requires `request.auth.token.is_premium == 
 
 Session writes (progress, streaks, daily plans) must be batched at the end of each lesson — not per-exercise — to stay within Firestore's free-tier write quota (~1,200 DAU ceiling).
 
-### Current implementation status (Phase 1 in progress)
+### Current implementation status (Phase 1 mostly complete)
 
 Completed:
-- Firebase project setup with three flavours
+- Firebase project setup with three flavours, each with its own `google-services.json` and `firebase_options_*.dart`
 - Anonymous sign-in on launch + initial `users` document creation
 - Riverpod providers for auth and Firestore instances
 - Localisation scaffold (PL/EN `.arb` files, locale persistence)
 - CI pipeline (lint, test, build on PRs to `main`/`develop`)
 - `UserState` enum and `userStateProvider` covering all four auth states
 - `SplashScreen` placeholder shown during auth state loading/error
+- GoRouter navigation shell (`ShellRoute`) with bottom `NavigationBar` (Home / Progress / Settings)
+- `RegisterScreen`, `LoginScreen`, `ForgotPasswordScreen` with full form validation and error handling
+- `SettingsScreen`: language toggle, account info, sign-out
+- `AuthService` extended: `registerWithEmail`, `signInWithEmail`, `sendPasswordResetEmail`, `signOut`
+- Full unit/widget test suite (77 tests); CI passes
+- Repository layer scaffold: `UserRepository` + `AudioStorageRepository` interfaces, `FirebaseUserRepository` implementation, CI import boundary check
 
 In progress / not yet built:
-- GoRouter navigation shell with auth-gated routes
-- Registration, login, password reset screens
+- Firebase Auth email template customisation (Polish copy, branding) — console task, pre-beta
+- `[DEV]` nav buttons on `HomeScreen` to be removed when Phase 2 session result screen is built
 - RevenueCat integration and premium upgrade flow
 - Cloud Function: RevenueCat webhook → JWT custom claim
+
+## Testing
+
+### Running coverage
+
+```bash
+# from stanag_app/
+flutter test --coverage
+# Parse results (lcov not required):
+python3 - <<'EOF'
+import re
+with open("coverage/lcov.info") as f:
+    content = f.read()
+records = content.strip().split("end_of_record")
+for rec in records:
+    sf = re.search(r"^SF:(.+)$", rec, re.MULTILINE)
+    lh = re.search(r"^LH:(\d+)$", rec, re.MULTILINE)
+    lf = re.search(r"^LF:(\d+)$", rec, re.MULTILINE)
+    if sf and lh and lf:
+        path = sf.group(1).split("stanag_app/")[-1]
+        cov, tot = int(lh.group(1)), int(lf.group(1))
+        print(f"{path:<55} {cov}/{tot}  {cov/tot*100:.1f}%")
+EOF
+```
+
+### Test structure
+
+Test files mirror `lib/`:
+- `test/providers/` — Riverpod provider tests
+- `test/services/` — service unit tests
+- `test/screens/` — widget tests for individual screens
+
+### Conventions
+
+- **Firebase Auth mocking** — use `mocktail` (`MockFirebaseAuth`, `MockUser`, `MockIdTokenResult`). No codegen needed.
+- **Firestore mocking** — use `fake_cloud_firestore` (`FakeFirebaseFirestore`).
+- **Riverpod providers** — test with `ProviderContainer` + `overrides`, not the full widget tree. Override `firebaseAuthProvider` to inject mock auth.
+- **StreamProvider** — Riverpod 3.x removed `.stream`/`.future` modifiers. Use `container.listen` with a `Completer<T>` to await the first emission.
+- **SharedPreferences** — call `SharedPreferences.setMockInitialValues({})` in `setUp` before any test that uses `localeProvider`. Keys are passed without the `flutter.` prefix — it is added automatically.
+- **Generated files** — `firebase_options_*.dart` and `app_localizations_*.dart` carry `// coverage:ignore-file` so they are excluded from coverage reports.
+
+### Widget test gotchas
+
+- `pumpAndSettle()` times out whenever `CircularProgressIndicator` is visible (infinite animation). Use `await tester.pump(); await tester.pump();` instead for tests that show `SplashScreen`.
+- Screen widget tests use a plain `MaterialApp` wrapper (not `MaterialApp.router`) with `authServiceProvider.overrideWithValue(mockService)` — no need for a real GoRouter in screen-level tests.
+- `AuthCredential` requires a `registerFallbackValue(FakeAuthCredential())` in `setUpAll` before using `any()` in mocktail matchers for `linkWithCredential`.

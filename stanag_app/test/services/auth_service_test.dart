@@ -9,9 +9,15 @@ class MockUser extends Mock implements User {}
 
 class MockUserCredential extends Mock implements UserCredential {}
 
+class FakeAuthCredential extends Fake implements AuthCredential {}
+
 void main() {
   late MockFirebaseAuth mockAuth;
   late AuthService sut;
+
+  setUpAll(() {
+    registerFallbackValue(FakeAuthCredential());
+  });
 
   setUp(() {
     mockAuth = MockFirebaseAuth();
@@ -66,6 +72,99 @@ void main() {
         () => sut.signInAnonymously(),
         throwsA(isA<FirebaseAuthException>()),
       );
+    });
+  });
+
+  // ── registerWithEmail ──────────────────────────────────────────────────────
+
+  group('registerWithEmail', () {
+    test('calls linkWithCredential on the current user', () async {
+      final user = MockUser();
+      when(() => mockAuth.currentUser).thenReturn(user);
+      when(() => user.linkWithCredential(any()))
+          .thenAnswer((_) async => MockUserCredential());
+
+      await sut.registerWithEmail('a@b.com', 'password123');
+
+      verify(() => user.linkWithCredential(any())).called(1);
+    });
+
+    test('rethrows FirebaseAuthException when email is already in use', () async {
+      final user = MockUser();
+      when(() => mockAuth.currentUser).thenReturn(user);
+      when(() => user.linkWithCredential(any())).thenThrow(
+        FirebaseAuthException(code: 'email-already-in-use'),
+      );
+
+      expect(
+        () => sut.registerWithEmail('a@b.com', 'password123'),
+        throwsA(isA<FirebaseAuthException>().having((e) => e.code, 'code', 'email-already-in-use')),
+      );
+    });
+  });
+
+  // ── signInWithEmail ────────────────────────────────────────────────────────
+
+  group('signInWithEmail', () {
+    test('calls signInWithEmailAndPassword with correct credentials', () async {
+      when(() => mockAuth.signInWithEmailAndPassword(
+            email: 'a@b.com',
+            password: 'password123',
+          )).thenAnswer((_) async => MockUserCredential());
+
+      await sut.signInWithEmail('a@b.com', 'password123');
+
+      verify(() => mockAuth.signInWithEmailAndPassword(
+            email: 'a@b.com',
+            password: 'password123',
+          )).called(1);
+    });
+
+    test('rethrows FirebaseAuthException on wrong password', () async {
+      when(() => mockAuth.signInWithEmailAndPassword(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          )).thenThrow(FirebaseAuthException(code: 'wrong-password'));
+
+      expect(
+        () => sut.signInWithEmail('a@b.com', 'wrong'),
+        throwsA(isA<FirebaseAuthException>()),
+      );
+    });
+  });
+
+  // ── sendPasswordResetEmail ─────────────────────────────────────────────────
+
+  group('sendPasswordResetEmail', () {
+    test('calls FirebaseAuth.sendPasswordResetEmail with the given email', () async {
+      when(() => mockAuth.sendPasswordResetEmail(email: 'a@b.com'))
+          .thenAnswer((_) async {});
+
+      await sut.sendPasswordResetEmail('a@b.com');
+
+      verify(() => mockAuth.sendPasswordResetEmail(email: 'a@b.com')).called(1);
+    });
+
+    test('rethrows FirebaseAuthException when user is not found', () async {
+      when(() => mockAuth.sendPasswordResetEmail(email: any(named: 'email')))
+          .thenThrow(FirebaseAuthException(code: 'user-not-found'));
+
+      expect(
+        () => sut.sendPasswordResetEmail('noone@b.com'),
+        throwsA(isA<FirebaseAuthException>()),
+      );
+    });
+  });
+
+  // ── signOut ────────────────────────────────────────────────────────────────
+
+  group('signOut', () {
+    test('calls FirebaseAuth.signOut', () async {
+      when(() => mockAuth.signOut()).thenAnswer((_) async {});
+
+      await sut.signOut();
+
+      verify(() => mockAuth.signOut()).called(1);
     });
   });
 

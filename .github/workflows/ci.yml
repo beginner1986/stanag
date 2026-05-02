@@ -59,6 +59,9 @@ jobs:
         working-directory: stanag_app
         run: flutter gen-l10n
         
+      - name: Check repository layer imports
+        run: bash .github/scripts/check_repository_imports.sh
+
       - name: Analyse
         working-directory: stanag_app
         run: flutter analyze
