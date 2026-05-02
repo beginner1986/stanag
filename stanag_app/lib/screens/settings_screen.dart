@@ -31,8 +31,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _signOut() async {
-    await ref.read(authServiceProvider).signOut();
-    await ref.read(authServiceProvider).signInAnonymously();
+    try {
+      await ref.read(authServiceProvider).signOut();
+      await ref.read(authServiceProvider).signInAnonymously();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric)),
+      );
+    }
   }
 
   Future<void> _handleNotificationToggle(bool value) async {

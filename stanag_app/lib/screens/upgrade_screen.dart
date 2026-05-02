@@ -25,8 +25,10 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
       if (mounted) context.pop();
     } on PurchasesError catch (e) {
       if (e.code == PurchasesErrorCode.purchaseCancelledError) return;
+      debugPrint('UpgradeScreen: purchase error: $e');
       if (mounted) _showSnackBar(l.upgradeErrorMessage);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('UpgradeScreen: unexpected purchase error: $e\n$st');
       if (mounted) _showSnackBar(l.upgradeErrorMessage);
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -40,7 +42,8 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
       await ref.read(purchaseServiceProvider).restorePurchases();
       await ref.read(authServiceProvider).refreshToken();
       if (mounted) _showSnackBar(l.upgradeSuccessMessage);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('UpgradeScreen: restore error: $e\n$st');
       if (mounted) _showSnackBar(l.upgradeErrorMessage);
     } finally {
       if (mounted) setState(() => _isLoading = false);

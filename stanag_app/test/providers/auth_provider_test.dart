@@ -144,7 +144,7 @@ void main() {
       expect(await _awaitFirst(container), UserState.registeredFree);
     });
 
-    test('yields registeredFree when getIdTokenResult throws', () async {
+    test('yields anonymous when getIdTokenResult throws', () async {
       final user = MockUser();
       when(() => user.isAnonymous).thenReturn(false);
       when(() => user.getIdTokenResult()).thenThrow(Exception('network'));
@@ -152,7 +152,7 @@ void main() {
           .thenAnswer((_) => Stream.value(user));
       container = _makeContainer(mockAuth);
 
-      expect(await _awaitFirst(container), UserState.registeredFree);
+      expect(await _awaitFirst(container), UserState.anonymous);
     });
 
     // ── registeredPremium ───────────────────────────────────────────────────

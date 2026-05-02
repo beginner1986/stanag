@@ -39,7 +39,7 @@ Future<void> main() async {
     if (flavor == 'dev') await Purchases.setLogLevel(LogLevel.debug);
     final config = PurchasesConfiguration(_revenueCatApiKey)
       ..appUserID = user?.uid;
-    await Purchases.configure(config);
+    await Purchases.configure(config).timeout(const Duration(seconds: 10));
   }
   if (user != null) {
     final deviceLang =
