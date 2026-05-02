@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/providers/firebase_providers.dart';
+import 'package:stanag_app/repositories/interfaces/user_repository.dart';
+import 'package:stanag_app/services/auth_service.dart';
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 
@@ -68,6 +71,32 @@ Future<List<UserState>> _awaitN(ProviderContainer container, int count) {
 // ── tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
+  // ── authServiceProvider ───────────────────────────────────────────────────
+
+  group('authServiceProvider', () {
+    test('returns an AuthService wrapping the injected FirebaseAuth', () {
+      final container = ProviderContainer(
+        overrides: [firebaseAuthProvider.overrideWithValue(MockFirebaseAuth())],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(authServiceProvider), isA<AuthService>());
+    });
+  });
+
+  // ── userRepositoryProvider ────────────────────────────────────────────────
+
+  group('userRepositoryProvider', () {
+    test('returns a UserRepository backed by the injected Firestore', () {
+      final container = ProviderContainer(
+        overrides: [firestoreProvider.overrideWithValue(FakeFirebaseFirestore())],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(userRepositoryProvider), isA<UserRepository>());
+    });
+  });
+
   group('userStateProvider', () {
     late MockFirebaseAuth mockAuth;
     late ProviderContainer container;

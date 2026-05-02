@@ -30,8 +30,8 @@ flutter test test/widget_test.dart
 flutter run --flavor dev --dart-define=FLAVOR=dev
 
 # Build APK
-flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
-flutter build apk --flavor prod -t lib/main.dart --dart-define=FLAVOR=prod
+flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev --dart-define=REVENUECAT_API_KEY=<key>
+flutter build apk --flavor prod -t lib/main.dart --dart-define=FLAVOR=prod --dart-define=REVENUECAT_API_KEY=<key>
 ```
 
 ## Architecture
@@ -92,6 +92,16 @@ The four user states are: `anonymous`, `registered_free`, `registered_premium`, 
 
 When a user registers, the anonymous UID is preserved via `linkWithCredential()` — no data migration needed. If the email already exists, the app must catch the linking error, offer login, and manually merge progress.
 
+### Premium purchase flow
+
+`PurchaseService` (in `lib/services/purchase_service.dart`) is an abstract class wrapping the `purchases_flutter` SDK. `RevenueCatPurchaseService` is the only implementation, injected via `purchaseServiceProvider`. This keeps the SDK's static calls mockable in tests.
+
+RevenueCat is initialised in `main.dart` after anonymous sign-in. The API key is passed at build time via `--dart-define=REVENUECAT_API_KEY` and read with `String.fromEnvironment`. Initialisation is skipped on web and when the key is empty (e.g. CI test runs).
+
+The purchase flow: `UpgradeScreen` → `purchasePackage()` → `AuthService.refreshToken()` → `userStateProvider` picks up the new `is_premium` claim without restart.
+
+`purchases_flutter` v10 note: `Purchases.purchasePackage()` is deprecated. Use `Purchases.purchase(PurchaseParams.package(package))`. `PurchasesError` takes 4 positional args: `(code, message, underlyingErrorMessage, readableErrorCode)`.
+
 ### Localisation
 
 UI strings are in `.arb` files at `lib/l10n/app_en.arb` (template) and `lib/l10n/app_pl.arb`. Run `flutter gen-l10n` after any `.arb` change to regenerate the `AppLocalizations` class. No hardcoded UI strings anywhere.
@@ -126,14 +136,15 @@ Completed:
 - `RegisterScreen`, `LoginScreen`, `ForgotPasswordScreen` with full form validation and error handling
 - `SettingsScreen`: language toggle, account info, sign-out
 - `AuthService` extended: `registerWithEmail`, `signInWithEmail`, `sendPasswordResetEmail`, `signOut`
-- Full unit/widget test suite (77 tests); CI passes
+- Full unit/widget test suite (137 tests); CI passes
 - Repository layer scaffold: `UserRepository` + `AudioStorageRepository` interfaces, `FirebaseUserRepository` implementation, CI import boundary check
+- Premium upgrade flow: `PurchaseService`, `offeringsProvider`, `UpgradeScreen`, `/upgrade` route, RevenueCat SDK init in `main.dart`
 
 In progress / not yet built:
 - Firebase Auth email template customisation (Polish copy, branding) — console task, pre-beta
 - `[DEV]` nav buttons on `HomeScreen` to be removed when Phase 2 session result screen is built
-- RevenueCat integration and premium upgrade flow
-- Cloud Function: RevenueCat webhook → JWT custom claim
+- Cloud Function: RevenueCat webhook → JWT custom claim (steps C–F in `docs/premium_entitlement_plan.md`)
+- RevenueCat + Google Play Console account setup (steps A–B) — blocked on identity verification
 
 ## Testing
 
@@ -171,12 +182,16 @@ Test files mirror `lib/`:
 - **Firebase Auth mocking** — use `mocktail` (`MockFirebaseAuth`, `MockUser`, `MockIdTokenResult`). No codegen needed.
 - **Firestore mocking** — use `fake_cloud_firestore` (`FakeFirebaseFirestore`).
 - **Riverpod providers** — test with `ProviderContainer` + `overrides`, not the full widget tree. Override `firebaseAuthProvider` to inject mock auth.
-- **StreamProvider** — Riverpod 3.x removed `.stream`/`.future` modifiers. Use `container.listen` with a `Completer<T>` to await the first emission.
+- **StreamProvider** — Riverpod 3.x removed `.stream`/`.future` modifiers on StreamProvider. Use `container.listen` with a `Completer<T>` to await the first emission.
+- **FutureProvider error state (Riverpod 3.x)** — when a `FutureProvider` errors, the state remains `AsyncLoading` with `hasError == true` rather than transitioning to `AsyncError`. `isLoading` stays `true`. Await settlement with `container.listen` checking `next.hasError || !next.isLoading`; assert with `result.hasError` rather than `isA<AsyncError<T>>()`. `thenThrow` does not work for FutureProvider error tests — the mock throws synchronously before returning a `Future` and Riverpod 3.x does not convert it to an error state. Use `thenAnswer((_) async => throw ...)` instead.
+- **`Override` type** — not exported from `flutter_riverpod`'s public API; cannot be used as a type annotation in test helpers (e.g. `List<Override>`). Write the `ProviderScope(overrides: [...])` inline for tests that need multiple overrides, or omit the explicit type and rely on inference.
 - **SharedPreferences** — call `SharedPreferences.setMockInitialValues({})` in `setUp` before any test that uses `localeProvider`. Keys are passed without the `flutter.` prefix — it is added automatically.
 - **Generated files** — `firebase_options_*.dart` and `app_localizations_*.dart` carry `// coverage:ignore-file` so they are excluded from coverage reports.
+- **`purchases_flutter` mocking** — mock the abstract `PurchaseService` interface with mocktail; do not try to mock the static `Purchases.*` calls directly. Register `FakePackage` as a fallback value for `Package` arguments. `PurchasesError` needs 4 positional args: `(code, message, underlyingErrorMessage, readableErrorCode)`.
+- **FutureProvider error override** — do not pass `Future.error(e)` directly to `overrideWith`; the test zone sees it as unhandled and fails the test. Throw inside an `async` body instead: `overrideWith((ref) async => throw Exception('…'))`.
 
 ### Widget test gotchas
 
 - `pumpAndSettle()` times out whenever `CircularProgressIndicator` is visible (infinite animation). Use `await tester.pump(); await tester.pump();` instead for tests that show `SplashScreen`.
-- Screen widget tests use a plain `MaterialApp` wrapper (not `MaterialApp.router`) with `authServiceProvider.overrideWithValue(mockService)` — no need for a real GoRouter in screen-level tests.
+- Screen widget tests use a plain `MaterialApp` wrapper (not `MaterialApp.router`) with `authServiceProvider.overrideWithValue(mockService)` — no need for a real GoRouter in screen-level tests. Exception: screens that call `context.pop()` or `context.push()` need a real `GoRouter` in the test wrapper (see `upgrade_screen_test.dart`).
 - `AuthCredential` requires a `registerFallbackValue(FakeAuthCredential())` in `setUpAll` before using `any()` in mocktail matchers for `linkWithCredential`.
