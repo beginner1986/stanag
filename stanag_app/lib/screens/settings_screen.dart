@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
-import 'package:stanag_app/models/user_state.dart';
-import 'package:stanag_app/providers/auth_provider.dart';
-import 'package:stanag_app/providers/locale_provider.dart';
-import 'package:stanag_app/providers/notification_preferences_provider.dart';
-import 'package:stanag_app/services/notification_permission_service.dart';
+import 'package:stanag_app/widgets/account_section.dart';
+import 'package:stanag_app/widgets/language_selector.dart';
+import 'package:stanag_app/widgets/notification_settings_tile.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _privacyPolicyUrl = 'https://stanag-english.app/privacy';
 const _termsUrl = 'https://stanag-english.app/terms';
 
-class SettingsScreen extends ConsumerStatefulWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -30,152 +26,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _signOut() async {
-    try {
-      await ref.read(authServiceProvider).signOut();
-      await ref.read(authServiceProvider).signInAnonymously();
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneric)),
-      );
-    }
-  }
-
-  Future<void> _handleNotificationToggle(bool value) async {
-    final l = AppLocalizations.of(context)!;
-
-    if (!value) {
-      await ref.read(notificationPreferencesProvider.notifier).setEnabled(false);
-      return;
-    }
-
-    final permService = ref.read(notificationPermissionServiceProvider);
-    final status = await permService.checkStatus();
-
-    if (status == NotificationPermissionStatus.granted) {
-      await ref.read(notificationPreferencesProvider.notifier).setEnabled(true);
-      return;
-    }
-
-    if (status == NotificationPermissionStatus.permanentlyDenied) {
-      if (!mounted) return;
-      _showPermanentlyDeniedSnackBar(l);
-      return;
-    }
-
-    final result = await permService.request();
-    if (!mounted) return;
-
-    if (result == NotificationPermissionStatus.granted) {
-      await ref.read(notificationPreferencesProvider.notifier).setEnabled(true);
-    } else if (result == NotificationPermissionStatus.permanentlyDenied) {
-      _showPermanentlyDeniedSnackBar(l);
-    }
-    // plain denied: do nothing — toggle stays off silently
-  }
-
-  void _showPermanentlyDeniedSnackBar(AppLocalizations l) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l.settingsNotificationsDenied),
-        action: SnackBarAction(
-          label: l.settingsNotificationsOpenSettings,
-          onPressed: () =>
-              ref.read(notificationPermissionServiceProvider).openSettings(),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleTimeTap() async {
-    final prefs = ref.read(notificationPreferencesProvider);
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: prefs.reminderTime,
-    );
-    if (picked != null) {
-      await ref.read(notificationPreferencesProvider.notifier).setTime(picked);
-    }
-  }
-
-  String? _accountTypeLabel(UserState? state, AppLocalizations l) {
-    return switch (state) {
-      UserState.registeredFree => l.settingsAccountTypeFree,
-      UserState.registeredPremium => l.settingsAccountTypePremium,
-      UserState.expiredPremium => l.settingsAccountTypeExpired,
-      _ => null,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final locale = ref.watch(localeProvider);
-    final userState = ref.watch(userStateProvider);
-    final notifPrefs = ref.watch(notificationPreferencesProvider);
-    final email = ref.read(authServiceProvider).currentUser?.email;
-    final userStateValue = userState.asData?.value;
-    final isRegistered = userStateValue != UserState.anonymous;
-    final accountTypeLabel = _accountTypeLabel(userStateValue, l);
-
     return Scaffold(
       appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
         children: [
           _SectionHeader(l.settingsLanguageSection),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'en', label: Text('English')),
-                ButtonSegment(value: 'pl', label: Text('Polski')),
-              ],
-              selected: {locale.languageCode},
-              onSelectionChanged: (selection) {
-                ref.read(localeProvider.notifier).setLocale(Locale(selection.first));
-              },
-            ),
-          ),
+          const LanguageSelector(),
           const Divider(),
           _SectionHeader(l.settingsNotificationsSection),
-          SwitchListTile(
-            secondary: const Icon(Icons.notifications_outlined),
-            title: Text(l.settingsNotificationsDailyReminder),
-            value: notifPrefs.enabled,
-            onChanged: _handleNotificationToggle,
-          ),
-          if (notifPrefs.enabled)
-            ListTile(
-              leading: const Icon(Icons.schedule_outlined),
-              title: Text(l.settingsNotificationsTime),
-              trailing: Text(
-                notifPrefs.reminderTime.format(context),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              onTap: _handleTimeTap,
-            ),
+          const NotificationSettingsTile(),
           const Divider(),
           _SectionHeader(l.settingsAccountSection),
-          ListTile(
-            leading: const Icon(Icons.account_circle_outlined),
-            title: Text(isRegistered && email != null ? email : l.settingsGuest),
-            subtitle: accountTypeLabel != null ? Text(accountTypeLabel) : null,
-          ),
-          if (userStateValue == UserState.registeredFree ||
-              userStateValue == UserState.expiredPremium)
-            ListTile(
-              leading: const Icon(Icons.star_outline),
-              title: Text(l.settingsUpgradeToPremium),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/upgrade'),
-            ),
-          if (isRegistered)
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: Text(l.settingsSignOut),
-              onTap: _signOut,
-            ),
+          const AccountSection(),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
