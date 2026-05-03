@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stanag_app/models/notification_preferences.dart';
+import 'package:stanag_app/providers/local_storage_provider.dart';
 import 'package:stanag_app/services/notification_permission_service.dart';
 
 final notificationPermissionServiceProvider =
@@ -27,10 +27,11 @@ class NotificationPreferencesNotifier
   }
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool(_enabledKey) ?? false;
-    final hour = prefs.getInt(_hourKey) ?? 8;
-    final minute = prefs.getInt(_minuteKey) ?? 0;
+    final storage = ref.read(localStorageProvider);
+    final enabled = await storage.getBool(_enabledKey) ?? false;
+    final hour = await storage.getInt(_hourKey) ?? 8;
+    final minute = await storage.getInt(_minuteKey) ?? 0;
+    if (!ref.mounted) return;
     state = NotificationPreferences(
       enabled: enabled,
       reminderTime: TimeOfDay(hour: hour, minute: minute),
@@ -39,14 +40,13 @@ class NotificationPreferencesNotifier
 
   Future<void> setEnabled(bool value) async {
     state = state.copyWith(enabled: value);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_enabledKey, value);
+    await ref.read(localStorageProvider).setBool(_enabledKey, value);
   }
 
   Future<void> setTime(TimeOfDay time) async {
     state = state.copyWith(reminderTime: time);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_hourKey, time.hour);
-    await prefs.setInt(_minuteKey, time.minute);
+    final storage = ref.read(localStorageProvider);
+    await storage.setInt(_hourKey, time.hour);
+    await storage.setInt(_minuteKey, time.minute);
   }
 }

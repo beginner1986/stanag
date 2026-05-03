@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stanag_app/providers/local_storage_provider.dart';
 
 const _localeKey = 'interface_lang';
 
@@ -14,8 +14,9 @@ class LocaleNotifier extends Notifier<Locale> {
   }
 
   Future<void> _loadSavedLocale() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedLocale = prefs.getString(_localeKey);
+    final savedLocale =
+        await ref.read(localStorageProvider).getString(_localeKey);
+    if (!ref.mounted) return;
     if (savedLocale != null) {
       state = Locale(savedLocale);
     }
@@ -23,7 +24,6 @@ class LocaleNotifier extends Notifier<Locale> {
 
   Future<void> setLocale(Locale newLocale) async {
     state = newLocale;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_localeKey, newLocale.languageCode);
+    await ref.read(localStorageProvider).setString(_localeKey, newLocale.languageCode);
   }
 }
