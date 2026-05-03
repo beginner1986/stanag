@@ -14,6 +14,7 @@ import 'package:stanag_app/providers/purchase_provider.dart';
 import 'package:stanag_app/screens/upgrade_screen.dart';
 import 'package:stanag_app/services/auth_service.dart';
 import 'package:stanag_app/services/purchase_service.dart';
+import 'package:stanag_app/routes/app_routes.dart';
 import '../mocks/service_mocks.dart';
 
 class FakePackage extends Fake implements Package {}
@@ -58,9 +59,9 @@ Widget _wrap({
   _OfferingsState offeringsState = _OfferingsState.data,
 }) {
   final router = GoRouter(
-    initialLocation: '/upgrade',
+    initialLocation: AppRoutes.upgrade,
     routes: [
-      GoRoute(path: '/upgrade', builder: (_, _) => const UpgradeScreen()),
+      GoRoute(path: AppRoutes.upgrade, builder: (_, _) => const UpgradeScreen()),
       GoRoute(
         path: '/',
         builder: (_, _) => const Scaffold(body: Text('home')),

@@ -15,6 +15,7 @@ import 'package:stanag_app/screens/progress_screen.dart';
 import 'package:stanag_app/screens/register_screen.dart';
 import 'package:stanag_app/screens/settings_screen.dart';
 import 'package:stanag_app/screens/upgrade_screen.dart';
+import 'package:stanag_app/routes/app_routes.dart';
 import '../mocks/service_mocks.dart';
 
 /// Pumps [MyApp] with a fixed user state.
@@ -51,7 +52,7 @@ void main() {
         await tester.pumpWidget(_buildApp(state));
         await tester.pumpAndSettle();
 
-        _router(tester).go('/login');
+        _router(tester).go(AppRoutes.login);
         await tester.pumpAndSettle();
 
         expect(find.byType(HomeScreen), findsOneWidget);
@@ -64,7 +65,7 @@ void main() {
       await tester.pumpWidget(_buildApp(UserState.registeredFree));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/register');
+      _router(tester).go(AppRoutes.register);
       await tester.pumpAndSettle();
 
       expect(find.byType(HomeScreen), findsOneWidget);
@@ -76,7 +77,7 @@ void main() {
       await tester.pumpWidget(_buildApp(UserState.registeredFree));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/forgot-password');
+      _router(tester).go(AppRoutes.forgotPassword);
       await tester.pumpAndSettle();
 
       expect(find.byType(HomeScreen), findsOneWidget);
@@ -96,7 +97,7 @@ void main() {
       await tester.pumpWidget(_buildApp(UserState.anonymous));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/register');
+      _router(tester).go(AppRoutes.register);
       await tester.pumpAndSettle();
 
       expect(find.byType(RegisterScreen), findsOneWidget);
@@ -106,7 +107,7 @@ void main() {
       await tester.pumpWidget(_buildApp(UserState.anonymous));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/login');
+      _router(tester).go(AppRoutes.login);
       await tester.pumpAndSettle();
 
       expect(find.byType(LoginScreen), findsOneWidget);
@@ -117,7 +118,7 @@ void main() {
       await tester.pumpWidget(_buildApp(UserState.anonymous));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/forgot-password');
+      _router(tester).go(AppRoutes.forgotPassword);
       await tester.pumpAndSettle();
 
       expect(find.byType(ForgotPasswordScreen), findsOneWidget);
@@ -134,7 +135,7 @@ void main() {
       await tester.pumpWidget(_buildApp(UserState.registeredFree));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/progress');
+      _router(tester).go(AppRoutes.progress);
       await tester.pumpAndSettle();
 
       expect(find.byType(ProgressScreen), findsOneWidget);
@@ -154,7 +155,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/settings');
+      _router(tester).go(AppRoutes.settings);
       await tester.pumpAndSettle();
 
       expect(find.byType(SettingsScreen), findsOneWidget);
@@ -175,7 +176,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      _router(tester).go('/upgrade');
+      _router(tester).go(AppRoutes.upgrade);
       await tester.pumpAndSettle();
 
       expect(find.byType(UpgradeScreen), findsOneWidget);
