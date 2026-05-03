@@ -4,6 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
+import 'package:stanag_app/routes/app_routes.dart';
+import 'package:stanag_app/widgets/email_form_field.dart';
+import 'package:stanag_app/widgets/form_error_text.dart';
+import 'package:stanag_app/widgets/loading_filled_button.dart';
+import 'package:stanag_app/widgets/password_form_field.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -66,59 +71,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  autocorrect: false,
-                  decoration: InputDecoration(labelText: l.emailLabel),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty || !v.contains('@')) {
-                      return l.emailValidationInvalid;
-                    }
-                    return null;
-                  },
-                ),
+                EmailFormField(controller: _emailController),
                 const SizedBox(height: 16),
-                TextFormField(
+                PasswordFormField(
                   controller: _passwordController,
-                  obscureText: true,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(labelText: l.passwordLabel),
-                  validator: (v) {
-                    if (v == null || v.length < 6) {
-                      return l.passwordValidationTooShort;
-                    }
-                    return null;
-                  },
-                  onFieldSubmitted: (_) => _submit(),
+                  onFieldSubmitted: _submit,
                 ),
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                FormErrorText(_errorMessage),
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => context.go('/forgot-password'),
+                    onPressed: () => context.go(AppRoutes.forgotPassword),
                     child: Text(l.signInForgotPassword),
                   ),
                 ),
                 const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _isLoading ? null : _submit,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l.signInButton),
+                LoadingFilledButton(
+                  label: l.signInButton,
+                  isLoading: _isLoading,
+                  onPressed: _submit,
                 ),
                 const SizedBox(height: 32),
                 Row(
@@ -126,7 +98,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     Text(l.signInNoAccount),
                     TextButton(
-                      onPressed: () => context.go('/register'),
+                      onPressed: () => context.go(AppRoutes.register),
                       child: Text(l.signInCreateLink),
                     ),
                   ],

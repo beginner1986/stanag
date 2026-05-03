@@ -3,62 +3,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
-import 'package:stanag_app/providers/auth_provider.dart';
+import 'package:stanag_app/providers/purchase_flow_provider.dart';
 import 'package:stanag_app/providers/purchase_provider.dart';
 
-class UpgradeScreen extends ConsumerStatefulWidget {
+class UpgradeScreen extends ConsumerWidget {
   const UpgradeScreen({super.key});
 
   @override
-  ConsumerState<UpgradeScreen> createState() => _UpgradeScreenState();
-}
-
-class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
-  bool _isLoading = false;
-
-  Future<void> _subscribe(Package package) async {
-    setState(() => _isLoading = true);
-    final l = AppLocalizations.of(context)!;
-    try {
-      await ref.read(purchaseServiceProvider).purchasePackage(package);
-      await ref.read(authServiceProvider).refreshToken();
-      if (mounted) context.pop();
-    } on PurchasesError catch (e) {
-      if (e.code == PurchasesErrorCode.purchaseCancelledError) return;
-      debugPrint('UpgradeScreen: purchase error: $e');
-      if (mounted) _showSnackBar(l.upgradeErrorMessage);
-    } catch (e, st) {
-      debugPrint('UpgradeScreen: unexpected purchase error: $e\n$st');
-      if (mounted) _showSnackBar(l.upgradeErrorMessage);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _restore() async {
-    setState(() => _isLoading = true);
-    final l = AppLocalizations.of(context)!;
-    try {
-      await ref.read(purchaseServiceProvider).restorePurchases();
-      await ref.read(authServiceProvider).refreshToken();
-      if (mounted) _showSnackBar(l.upgradeSuccessMessage);
-    } catch (e, st) {
-      debugPrint('UpgradeScreen: restore error: $e\n$st');
-      if (mounted) _showSnackBar(l.upgradeErrorMessage);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final offeringsAsync = ref.watch(offeringsProvider);
+    final flowState = ref.watch(purchaseFlowProvider);
+
+    ref.listen<PurchaseFlowState>(purchaseFlowProvider, (_, next) {
+      switch (next.status) {
+        case PurchaseFlowStatus.subscribed:
+          if (context.canPop()) context.pop();
+        case PurchaseFlowStatus.restored:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l.upgradeSuccessMessage)),
+          );
+        case PurchaseFlowStatus.error:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l.upgradeErrorMessage)),
+          );
+        default:
+          break;
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: Text(l.upgradeTitle)),
@@ -69,9 +41,11 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
           final package = offerings.current?.monthly;
           return _UpgradeBody(
             package: package,
-            isLoading: _isLoading,
-            onSubscribe: package != null ? () => _subscribe(package) : null,
-            onRestore: _restore,
+            isLoading: flowState.isLoading,
+            onSubscribe: package != null
+                ? () => ref.read(purchaseFlowProvider.notifier).subscribe(package)
+                : null,
+            onRestore: () => ref.read(purchaseFlowProvider.notifier).restore(),
           );
         },
       ),
@@ -189,11 +163,9 @@ class _FeatureTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: Theme.of(context).textTheme.titleSmall),
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 2),
-                Text(description,
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(description, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
