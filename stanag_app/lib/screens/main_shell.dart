@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
+import 'package:stanag_app/routes/app_routes.dart';
 
 class MainShell extends StatelessWidget {
   const MainShell({required this.location, required this.child, super.key});
@@ -9,8 +10,8 @@ class MainShell extends StatelessWidget {
   final Widget child;
 
   int get _selectedIndex {
-    if (location.startsWith('/progress')) return 1;
-    if (location.startsWith('/settings')) return 2;
+    if (location.startsWith(AppRoutes.progress)) return 1;
+    if (location.startsWith(AppRoutes.settings)) return 2;
     return 0;
   }
 
@@ -24,11 +25,11 @@ class MainShell extends StatelessWidget {
         onDestinationSelected: (index) {
           switch (index) {
             case 0:
-              context.go('/home');
+              context.go(AppRoutes.home);
             case 1:
-              context.go('/progress');
+              context.go(AppRoutes.progress);
             case 2:
-              context.go('/settings');
+              context.go(AppRoutes.settings);
           }
         },
         destinations: [
