@@ -2,14 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stanag_app/services/auth_service.dart';
-
-class MockFirebaseAuth extends Mock implements FirebaseAuth {}
-
-class MockUser extends Mock implements User {}
+import '../mocks/firebase_mocks.dart';
 
 class MockUserCredential extends Mock implements UserCredential {}
-
-class FakeAuthCredential extends Fake implements AuthCredential {}
 
 void main() {
   late MockFirebaseAuth mockAuth;

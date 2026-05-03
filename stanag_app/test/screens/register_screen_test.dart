@@ -8,10 +8,8 @@ import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/screens/register_screen.dart';
 import 'package:stanag_app/services/auth_service.dart';
-
-class MockAuthService extends Mock implements AuthService {}
-
-class FakeAuthCredential extends Fake implements AuthCredential {}
+import '../mocks/firebase_mocks.dart';
+import '../mocks/service_mocks.dart';
 
 Widget _wrap(Widget child, {AuthService? authService}) => ProviderScope(
       overrides: [

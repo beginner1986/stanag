@@ -10,10 +10,7 @@ import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/providers/firebase_providers.dart';
 import 'package:stanag_app/repositories/interfaces/user_repository.dart';
 import 'package:stanag_app/services/auth_service.dart';
-
-class MockFirebaseAuth extends Mock implements FirebaseAuth {}
-
-class MockUser extends Mock implements User {}
+import '../mocks/firebase_mocks.dart';
 
 class MockIdTokenResult extends Mock implements IdTokenResult {}
 

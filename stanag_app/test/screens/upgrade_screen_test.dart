@@ -14,10 +14,7 @@ import 'package:stanag_app/providers/purchase_provider.dart';
 import 'package:stanag_app/screens/upgrade_screen.dart';
 import 'package:stanag_app/services/auth_service.dart';
 import 'package:stanag_app/services/purchase_service.dart';
-
-class MockPurchaseService extends Mock implements PurchaseService {}
-
-class MockAuthService extends Mock implements AuthService {}
+import '../mocks/service_mocks.dart';
 
 class FakePackage extends Fake implements Package {}
 

@@ -15,9 +15,7 @@ import 'package:stanag_app/screens/progress_screen.dart';
 import 'package:stanag_app/screens/register_screen.dart';
 import 'package:stanag_app/screens/settings_screen.dart';
 import 'package:stanag_app/screens/upgrade_screen.dart';
-import 'package:stanag_app/services/auth_service.dart';
-
-class MockAuthService extends Mock implements AuthService {}
+import '../mocks/service_mocks.dart';
 
 /// Pumps [MyApp] with a fixed user state.
 Widget _buildApp(UserState state) => ProviderScope(

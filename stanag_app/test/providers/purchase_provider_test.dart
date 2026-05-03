@@ -6,8 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:stanag_app/providers/purchase_provider.dart';
 import 'package:stanag_app/services/purchase_service.dart';
-
-class MockPurchaseService extends Mock implements PurchaseService {}
+import '../mocks/service_mocks.dart';
 
 // ── Fake offerings ────────────────────────────────────────────────────────────
 
