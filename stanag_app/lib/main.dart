@@ -31,7 +31,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(localeProvider).asData?.value;
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       routerConfig: router,
