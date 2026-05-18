@@ -8,8 +8,7 @@ import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/screens/login_screen.dart';
 import 'package:stanag_app/services/auth_service.dart';
-
-class MockAuthService extends Mock implements AuthService {}
+import '../mocks/service_mocks.dart';
 
 Widget _wrap(Widget child, {AuthService? authService}) => ProviderScope(
       overrides: [

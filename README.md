@@ -26,9 +26,9 @@ All Flutter commands must be run from `stanag_app/`.
 
 | Flavour | Application ID | Firebase project |
 |---|---|---|
-| `dev` | `com.example.stanag_app.dev` | `stanag-dev` |
-| `staging` | `com.example.stanag_app.staging` | `stanag-staging` |
-| `prod` | `com.example.stanag_app` | `stanag-prod` |
+| `dev` | `pl.stanag.angielski.dev` | `stanag-dev` |
+| `staging` | `pl.stanag.angielski.staging` | `stanag-staging` |
+| `prod` | `pl.stanag.angielski` | `stanag-prod` |
 
 ## Local configuration (not committed)
 

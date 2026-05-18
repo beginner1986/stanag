@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
+import 'package:stanag_app/widgets/email_form_field.dart';
+import 'package:stanag_app/widgets/form_error_text.dart';
+import 'package:stanag_app/widgets/loading_filled_button.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -55,94 +58,32 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: _emailSent ? _SuccessView(message: l.resetPasswordSuccess) : _FormView(
-            formKey: _formKey,
-            emailController: _emailController,
-            isLoading: _isLoading,
-            errorMessage: _errorMessage,
-            onSubmit: _submit,
-            l: l,
-          ),
+          child: _emailSent
+              ? Center(child: Text(l.resetPasswordSuccess, textAlign: TextAlign.center))
+              : Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(l.resetPasswordDescription),
+                      const SizedBox(height: 24),
+                      EmailFormField(
+                        controller: _emailController,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: _submit,
+                      ),
+                      FormErrorText(_errorMessage),
+                      const SizedBox(height: 24),
+                      LoadingFilledButton(
+                        label: l.resetPasswordButton,
+                        isLoading: _isLoading,
+                        onPressed: _submit,
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ),
-    );
-  }
-}
-
-class _FormView extends StatelessWidget {
-  const _FormView({
-    required this.formKey,
-    required this.emailController,
-    required this.isLoading,
-    required this.errorMessage,
-    required this.onSubmit,
-    required this.l,
-  });
-
-  final GlobalKey<FormState> formKey;
-  final TextEditingController emailController;
-  final bool isLoading;
-  final String? errorMessage;
-  final VoidCallback onSubmit;
-  final AppLocalizations l;
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(l.resetPasswordDescription),
-          const SizedBox(height: 24),
-          TextFormField(
-            controller: emailController,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.done,
-            autocorrect: false,
-            decoration: InputDecoration(labelText: l.emailLabel),
-            validator: (v) {
-              if (v == null || v.trim().isEmpty || !v.contains('@')) {
-                return l.emailValidationInvalid;
-              }
-              return null;
-            },
-            onFieldSubmitted: (_) => onSubmit(),
-          ),
-          if (errorMessage != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              errorMessage!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-              textAlign: TextAlign.center,
-            ),
-          ],
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: isLoading ? null : onSubmit,
-            child: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(l.resetPasswordButton),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SuccessView extends StatelessWidget {
-  const _SuccessView({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(message, textAlign: TextAlign.center),
     );
   }
 }

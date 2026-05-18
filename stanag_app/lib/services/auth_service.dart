@@ -13,8 +13,10 @@ class AuthService {
   }
 
   Future<void> registerWithEmail(String email, String password) async {
+    final user = _auth.currentUser;
+    if (user == null) throw StateError('No current user');
     final credential = EmailAuthProvider.credential(email: email, password: password);
-    await _auth.currentUser!.linkWithCredential(credential);
+    await user.linkWithCredential(credential);
   }
 
   Future<void> signInWithEmail(String email, String password) async {

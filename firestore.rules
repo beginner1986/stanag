@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Content collections — public read, no client writes
+    match /levels/{doc}             { allow read; }
+    match /units/{doc}              { allow read; }
+    match /lessons/{doc}            { allow read; }
+    match /exercises/{doc}          { allow read; }
+    match /daily_motivations/{doc}  { allow read; }
+
+    // Premium-gated content
+    match /mock_exams/{doc} {
+      allow read: if request.auth != null
+                  && request.auth.token.is_premium == true;
+    }
+
+    // Users — each user accesses only their own document
+    match /users/{uid} {
+      allow read, update: if request.auth != null
+                          && request.auth.uid == uid;
+      allow create: if request.auth != null
+                    && request.auth.uid == uid;
+    }
+
+    // User data collections — uid field-based ownership.
+    // resource.data.uid is null on creates, so create rules use
+    // request.resource.data.uid instead.
+    match /user_progress/{doc} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+    }
+
+    match /user_streaks/{doc} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+    }
+
+    match /user_exercise_log/{doc} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+    }
+
+    match /daily_plans/{doc} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stanag_app/models/user_state.dart';
 import 'package:stanag_app/providers/firebase_providers.dart';
@@ -36,8 +37,9 @@ final userStateProvider = StreamProvider<UserState>((ref) async* {
       } else {
         yield UserState.registeredPremium;
       }
-    } catch (_) {
-      yield UserState.registeredFree;
+    } catch (e, st) {
+      debugPrint('userStateProvider: token fetch failed: $e\n$st');
+      yield UserState.anonymous;
     }
   }
 });

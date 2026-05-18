@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,10 +12,8 @@ import 'package:stanag_app/providers/notification_preferences_provider.dart';
 import 'package:stanag_app/screens/settings_screen.dart';
 import 'package:stanag_app/services/auth_service.dart';
 import 'package:stanag_app/services/notification_permission_service.dart';
-
-class MockAuthService extends Mock implements AuthService {}
-
-class MockUser extends Mock implements User {}
+import '../mocks/firebase_mocks.dart';
+import '../mocks/service_mocks.dart';
 
 class MockNotificationPermissionService extends Mock
     implements NotificationPermissionService {}

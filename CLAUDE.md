@@ -30,8 +30,8 @@ flutter test test/widget_test.dart
 flutter run --flavor dev --dart-define=FLAVOR=dev
 
 # Build APK
-flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev
-flutter build apk --flavor prod -t lib/main.dart --dart-define=FLAVOR=prod
+flutter build apk --flavor dev -t lib/main.dart --dart-define=FLAVOR=dev --dart-define=REVENUECAT_API_KEY=<key>
+flutter build apk --flavor prod -t lib/main.dart --dart-define=FLAVOR=prod --dart-define=REVENUECAT_API_KEY=<key>
 ```
 
 ## Architecture
@@ -43,9 +43,9 @@ The app has three flavours: `dev`, `staging`, `prod`. The active flavour is pass
 The `firebase_options_*.dart` files contain secrets and are **not committed**. In CI they are restored from base64-encoded GitHub Actions secrets. Locally you must have your own copies. Regenerate with:
 
 ```bash
-flutterfire configure --project=stanag-dev     --out=lib/firebase_options_dev.dart     --platforms=android,web
-flutterfire configure --project=stanag-staging --out=lib/firebase_options_staging.dart --platforms=android,web
-flutterfire configure --project=stanag-prod    --out=lib/firebase_options_prod.dart    --platforms=android,web
+flutterfire configure --project=stanag-app-dev     --out=lib/firebase_options_dev.dart     --platforms=android,web
+flutterfire configure --project=stanag-app-staging --out=lib/firebase_options_staging.dart --platforms=android,web
+flutterfire configure --project=stanag-app-prod    --out=lib/firebase_options_prod.dart    --platforms=android,web
 ```
 
 On Android, `FirebaseInitProvider` auto-initialises Firebase from the flavour-specific `google-services.json` before Dart runs. `main.dart` then calls `Firebase.initializeApp(options: options)`. The `firebase_core_platform_interface` library checks that the API key in the options matches the already-initialised native app — they always match because both files come from the same Firebase project.
@@ -56,13 +56,13 @@ Each flavour has its own file under `android/app/src/<flavour>/google-services.j
 
 | File | Firebase project | Application ID |
 |---|---|---|
-| `src/dev/google-services.json` | `stanag-dev` | `com.example.stanag_app.dev` |
-| `src/staging/google-services.json` | `stanag-staging` | `com.example.stanag_app.staging` |
-| `src/prod/google-services.json` | `stanag-prod` | `com.example.stanag_app` |
+| `src/dev/google-services.json` | `stanag-app-dev` | `pl.stanag.angielski.dev` |
+| `src/staging/google-services.json` | `stanag-app-staging` | `pl.stanag.angielski.staging` |
+| `src/prod/google-services.json` | `stanag-app-prod` | `pl.stanag.angielski` |
 
 These files contain secrets and are **not committed**. The `com.google.gms.google-services` Gradle plugin automatically picks the flavour-specific file at build time.
 
-Each Firebase project has exactly one registered Android app — only the application ID that matches its flavour. Do not register the base ID (`com.example.stanag_app`) in the dev or staging projects.
+Each Firebase project has exactly one registered Android app — only the application ID that matches its flavour. Do not register the base ID (`pl.stanag.angielski`) in the dev or staging projects.
 
 All Firebase services are in region `europe-central2` (Warsaw). Cloud Functions must also explicitly set this region — the default is `us-central1`.
 
@@ -91,6 +91,16 @@ The four user states are: `anonymous`, `registered_free`, `registered_premium`, 
 `userStateProvider` (in `lib/providers/auth_provider.dart`) is a `StreamProvider<UserState>` driven by `idTokenChanges()` — not `authStateChanges()` — so premium claim changes are detected without restarting the app. It reads the `is_premium` and `premium_until` JWT claims via `getIdTokenResult()`. Call `AuthService.refreshToken()` after purchase to force an immediate token refresh so the new claim propagates to the UI without the user restarting the app.
 
 When a user registers, the anonymous UID is preserved via `linkWithCredential()` — no data migration needed. If the email already exists, the app must catch the linking error, offer login, and manually merge progress.
+
+### Premium purchase flow
+
+`PurchaseService` (in `lib/services/purchase_service.dart`) is an abstract class wrapping the `purchases_flutter` SDK. `RevenueCatPurchaseService` is the only implementation, injected via `purchaseServiceProvider`. This keeps the SDK's static calls mockable in tests.
+
+RevenueCat is initialised in `main.dart` after anonymous sign-in. The API key is passed at build time via `--dart-define=REVENUECAT_API_KEY` and read with `String.fromEnvironment`. Initialisation is skipped on web and when the key is empty (e.g. CI test runs).
+
+The purchase flow: `UpgradeScreen` → `purchasePackage()` → `AuthService.refreshToken()` → `userStateProvider` picks up the new `is_premium` claim without restart.
+
+`purchases_flutter` v10 note: `Purchases.purchasePackage()` is deprecated. Use `Purchases.purchase(PurchaseParams.package(package))`. `PurchasesError` takes 4 positional args: `(code, message, underlyingErrorMessage, readableErrorCode)`.
 
 ### Localisation
 
@@ -126,14 +136,15 @@ Completed:
 - `RegisterScreen`, `LoginScreen`, `ForgotPasswordScreen` with full form validation and error handling
 - `SettingsScreen`: language toggle, account info, sign-out
 - `AuthService` extended: `registerWithEmail`, `signInWithEmail`, `sendPasswordResetEmail`, `signOut`
-- Full unit/widget test suite (77 tests); CI passes
+- Full unit/widget test suite (137 tests); CI passes
 - Repository layer scaffold: `UserRepository` + `AudioStorageRepository` interfaces, `FirebaseUserRepository` implementation, CI import boundary check
+- Premium upgrade flow: `PurchaseService`, `offeringsProvider`, `UpgradeScreen`, `/upgrade` route, RevenueCat SDK init in `main.dart`
 
 In progress / not yet built:
 - Firebase Auth email template customisation (Polish copy, branding) — console task, pre-beta
 - `[DEV]` nav buttons on `HomeScreen` to be removed when Phase 2 session result screen is built
-- RevenueCat integration and premium upgrade flow
-- Cloud Function: RevenueCat webhook → JWT custom claim
+- Cloud Function: RevenueCat webhook → JWT custom claim (steps C–F in `docs/premium_entitlement_plan.md`)
+- RevenueCat account created; Google Play subscription product + base plan done (A1, B1, B2 complete); remaining: connect Play to RevenueCat, create entitlement + offering, get API keys (A2–A7)
 
 ## Testing
 
@@ -171,12 +182,16 @@ Test files mirror `lib/`:
 - **Firebase Auth mocking** — use `mocktail` (`MockFirebaseAuth`, `MockUser`, `MockIdTokenResult`). No codegen needed.
 - **Firestore mocking** — use `fake_cloud_firestore` (`FakeFirebaseFirestore`).
 - **Riverpod providers** — test with `ProviderContainer` + `overrides`, not the full widget tree. Override `firebaseAuthProvider` to inject mock auth.
-- **StreamProvider** — Riverpod 3.x removed `.stream`/`.future` modifiers. Use `container.listen` with a `Completer<T>` to await the first emission.
+- **StreamProvider** — Riverpod 3.x removed `.stream`/`.future` modifiers on StreamProvider. Use `container.listen` with a `Completer<T>` to await the first emission.
+- **FutureProvider error state (Riverpod 3.x)** — when a `FutureProvider` errors, the state remains `AsyncLoading` with `hasError == true` rather than transitioning to `AsyncError`. `isLoading` stays `true`. Await settlement with `container.listen` checking `next.hasError || !next.isLoading`; assert with `result.hasError` rather than `isA<AsyncError<T>>()`. `thenThrow` does not work for FutureProvider error tests — the mock throws synchronously before returning a `Future` and Riverpod 3.x does not convert it to an error state. Use `thenAnswer((_) async => throw ...)` instead.
+- **`Override` type** — not exported from `flutter_riverpod`'s public API; cannot be used as a type annotation in test helpers (e.g. `List<Override>`). Write the `ProviderScope(overrides: [...])` inline for tests that need multiple overrides, or omit the explicit type and rely on inference.
 - **SharedPreferences** — call `SharedPreferences.setMockInitialValues({})` in `setUp` before any test that uses `localeProvider`. Keys are passed without the `flutter.` prefix — it is added automatically.
 - **Generated files** — `firebase_options_*.dart` and `app_localizations_*.dart` carry `// coverage:ignore-file` so they are excluded from coverage reports.
+- **`purchases_flutter` mocking** — mock the abstract `PurchaseService` interface with mocktail; do not try to mock the static `Purchases.*` calls directly. Register `FakePackage` as a fallback value for `Package` arguments. `PurchasesError` needs 4 positional args: `(code, message, underlyingErrorMessage, readableErrorCode)`.
+- **FutureProvider error override** — do not pass `Future.error(e)` directly to `overrideWith`; the test zone sees it as unhandled and fails the test. Throw inside an `async` body instead: `overrideWith((ref) async => throw Exception('…'))`.
 
 ### Widget test gotchas
 
 - `pumpAndSettle()` times out whenever `CircularProgressIndicator` is visible (infinite animation). Use `await tester.pump(); await tester.pump();` instead for tests that show `SplashScreen`.
-- Screen widget tests use a plain `MaterialApp` wrapper (not `MaterialApp.router`) with `authServiceProvider.overrideWithValue(mockService)` — no need for a real GoRouter in screen-level tests.
+- Screen widget tests use a plain `MaterialApp` wrapper (not `MaterialApp.router`) with `authServiceProvider.overrideWithValue(mockService)` — no need for a real GoRouter in screen-level tests. Exception: screens that call `context.pop()` or `context.push()` need a real `GoRouter` in the test wrapper (see `upgrade_screen_test.dart`).
 - `AuthCredential` requires a `registerFallbackValue(FakeAuthCredential())` in `setUpAll` before using `any()` in mocktail matchers for `linkWithCredential`.
