@@ -1,4 +1,4 @@
-package com.example.stanag_app
+package pl.stanag.angielski
 
 import io.flutter.embedding.android.FlutterActivity
 

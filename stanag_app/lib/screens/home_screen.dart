@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stanag_app/routes/app_routes.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,15 +16,15 @@ class HomeScreen extends StatelessWidget {
             // TODO: remove dev shortcuts before Phase 2
             const SizedBox(height: 32),
             OutlinedButton(
-              onPressed: () => context.go('/register'),
+              onPressed: () => context.go(AppRoutes.register),
               child: const Text('[DEV] Register'),
             ),
             OutlinedButton(
-              onPressed: () => context.go('/login'),
+              onPressed: () => context.go(AppRoutes.login),
               child: const Text('[DEV] Login'),
             ),
             OutlinedButton(
-              onPressed: () => context.go('/forgot-password'),
+              onPressed: () => context.go(AppRoutes.forgotPassword),
               child: const Text('[DEV] Forgot password'),
             ),
           ],
