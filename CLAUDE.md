@@ -43,9 +43,9 @@ The app has three flavours: `dev`, `staging`, `prod`. The active flavour is pass
 The `firebase_options_*.dart` files contain secrets and are **not committed**. In CI they are restored from base64-encoded GitHub Actions secrets. Locally you must have your own copies. Regenerate with:
 
 ```bash
-flutterfire configure --project=stanag-dev     --out=lib/firebase_options_dev.dart     --platforms=android,web
-flutterfire configure --project=stanag-staging --out=lib/firebase_options_staging.dart --platforms=android,web
-flutterfire configure --project=stanag-prod    --out=lib/firebase_options_prod.dart    --platforms=android,web
+flutterfire configure --project=stanag-app-dev     --out=lib/firebase_options_dev.dart     --platforms=android,web
+flutterfire configure --project=stanag-app-staging --out=lib/firebase_options_staging.dart --platforms=android,web
+flutterfire configure --project=stanag-app-prod    --out=lib/firebase_options_prod.dart    --platforms=android,web
 ```
 
 On Android, `FirebaseInitProvider` auto-initialises Firebase from the flavour-specific `google-services.json` before Dart runs. `main.dart` then calls `Firebase.initializeApp(options: options)`. The `firebase_core_platform_interface` library checks that the API key in the options matches the already-initialised native app — they always match because both files come from the same Firebase project.
@@ -56,13 +56,13 @@ Each flavour has its own file under `android/app/src/<flavour>/google-services.j
 
 | File | Firebase project | Application ID |
 |---|---|---|
-| `src/dev/google-services.json` | `stanag-dev` | `com.example.stanag_app.dev` |
-| `src/staging/google-services.json` | `stanag-staging` | `com.example.stanag_app.staging` |
-| `src/prod/google-services.json` | `stanag-prod` | `com.example.stanag_app` |
+| `src/dev/google-services.json` | `stanag-app-dev` | `pl.stanag.angielski.dev` |
+| `src/staging/google-services.json` | `stanag-app-staging` | `pl.stanag.angielski.staging` |
+| `src/prod/google-services.json` | `stanag-app-prod` | `pl.stanag.angielski` |
 
 These files contain secrets and are **not committed**. The `com.google.gms.google-services` Gradle plugin automatically picks the flavour-specific file at build time.
 
-Each Firebase project has exactly one registered Android app — only the application ID that matches its flavour. Do not register the base ID (`com.example.stanag_app`) in the dev or staging projects.
+Each Firebase project has exactly one registered Android app — only the application ID that matches its flavour. Do not register the base ID (`pl.stanag.angielski`) in the dev or staging projects.
 
 All Firebase services are in region `europe-central2` (Warsaw). Cloud Functions must also explicitly set this region — the default is `us-central1`.
 
@@ -144,7 +144,7 @@ In progress / not yet built:
 - Firebase Auth email template customisation (Polish copy, branding) — console task, pre-beta
 - `[DEV]` nav buttons on `HomeScreen` to be removed when Phase 2 session result screen is built
 - Cloud Function: RevenueCat webhook → JWT custom claim (steps C–F in `docs/premium_entitlement_plan.md`)
-- RevenueCat + Google Play Console account setup (steps A–B) — blocked on identity verification
+- RevenueCat account created; Google Play subscription product + base plan done (A1, B1, B2 complete); remaining: connect Play to RevenueCat, create entitlement + offering, get API keys (A2–A7)
 
 ## Testing
 

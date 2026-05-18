@@ -7,43 +7,46 @@
 ## Non-coding tasks (do these first — they unblock coding)
 
 ### A. RevenueCat setup
-1. Create a RevenueCat account and two projects: `stanag-dev` and `stanag-prod`
-2. In each project, connect to Google Play: upload a Google Play service account JSON (create one in Google Cloud Console with `androidpublisher` scope)
-3. Create an **Entitlement**: `premium`
-4. Create a **Product** matching the Google Play subscription ID (once Play Console product exists — see B)
-5. Create an **Offering** with one package (monthly subscription) linked to that product
-6. Note down the **RevenueCat Public API key** for dev and prod (used in Flutter SDK)
-7. Note down the **RevenueCat Webhook secret** (used in Cloud Function to validate request authenticity)
+1. ~~Create a RevenueCat account and two projects: `stanag-dev` and `stanag-prod`~~ ✅
+2. ~~In each project, connect to Google Play: upload a Google Play service account JSON (create one in Google Cloud Console with `androidpublisher` scope)~~ ✅ — prod project connected to Play (`pl.stanag.angielski`); dev project has no Play app and doesn't need one
+3. ~~Create an **Entitlement**: `premium`~~ ✅ — created in both projects
+4. ~~Create a **Product** matching the Google Play subscription ID (once Play Console product exists — see B)~~ ✅
+5. ~~Create an **Offering** with one package (monthly subscription) linked to that product~~ ✅
+6. ~~Note down the **RevenueCat Public API key** for dev and prod (used in Flutter SDK)~~ ✅
+7. ~~Generate a **Webhook secret** — run `openssl rand -hex 32`; store in password manager;~~ used in step D (Firebase env var) and step E (RC dashboard)
 
 ### B. Google Play Console
-1. Create a subscription product (e.g. `stanag_premium_monthly`), price 20–40 PLN, billing period monthly
-2. Set up a base plan with auto-renewal
-3. Link the product ID back to RevenueCat (step A.4 above)
+1. ~~Create a subscription product (e.g. `stanag_premium_monthly`), price 20–40 PLN, billing period monthly~~ ✅
+2. ~~Set up a base plan with auto-renewal~~ ✅
+3. ~~Link the product ID back to RevenueCat (step A.4 above)~~ ✅
 
-### C. Firebase Cloud Functions project init
-1. Run `firebase init functions` in the repo root — creates `functions/` directory with Node.js scaffold
-2. Set the default region to `europe-central2` in `functions/index.js` (critical — default is `us-central1`)
+### C. Firebase Cloud Functions project init ✅
+1. ~~Run `firebase init functions` in the repo root — creates `functions/` directory with Node.js scaffold~~ ✅ — Node 24, JavaScript, ESLint, default project = `stanag-app-dev`
+2. ~~Set the default region to `europe-central2` in `functions/index.js` (critical — default is `us-central1`)~~ ✅ — set via `setGlobalOptions`
 
 ---
 
 ## Coding track 1 — Cloud Function (webhook)
 
-### D. `functions/index.js` — RevenueCat webhook handler
-- HTTPS-triggered function, region `europe-central2`
-- Validates `Authorization: Bearer <secret>` header against env secret
-- Handles RevenueCat event types:
-  - `INITIAL_PURCHASE`, `RENEWAL` → set `is_premium: true`, `premium_until: <expiry>`
-  - `CANCELLATION`, `EXPIRATION`, `BILLING_ISSUE` → set `is_premium: false`, clear `premium_until`
-- Calls `admin.auth().setCustomUserClaims(uid, { is_premium, premium_until })` (server-side only, never client)
-- Writes matching fields to `users/{uid}` Firestore document
-- Returns 200 immediately (RevenueCat retries on non-2xx)
+### D. `functions/index.js` — RevenueCat webhook handler ✅
+- ~~HTTPS-triggered function, region `europe-central2`~~ ✅
+- ~~Validates `Authorization: Bearer <secret>` header against env secret~~ ✅ — secret managed via Cloud Secret Manager (`defineSecret("REVENUECAT_WEBHOOK_SECRET")`)
+- ~~Handles RevenueCat event types:~~ ✅
+  - `INITIAL_PURCHASE`, `RENEWAL`, `UNCANCELLATION` → set `is_premium: true`, `premium_until: <expiry ms>`
+  - `EXPIRATION`, `BILLING_ISSUE` → set `is_premium: false`, clear `premium_until`
+  - `CANCELLATION` → no-op (user retains access until EXPIRATION; revoking early violates Play Store policies)
+- ~~Calls `admin.auth().setCustomUserClaims(uid, { is_premium, premium_until })` (server-side only, never client)~~ ✅
+- ~~Writes matching fields to `users/{uid}` Firestore document~~ ✅ — uses `set(..., {merge: true})` to handle missing docs
+- ~~Returns 200 immediately (RevenueCat retries on non-2xx)~~ ✅
+- `premium_until` stored as epoch ms in JWT claim, Firestore Timestamp in `users` doc
 
 ### E. Configure webhook in RevenueCat dashboard
 - Paste the Cloud Function HTTPS trigger URL
-- Set the webhook secret (matches env variable in the function)
+- Set the webhook secret (matches `REVENUECAT_WEBHOOK_SECRET` secret)
 
 ### F. Deploy function
-- `firebase deploy --only functions` to `stanag-dev`, verify in Firebase console logs
+1. Set the secret: `firebase functions:secrets:set REVENUECAT_WEBHOOK_SECRET` (prompts for value)
+2. `firebase deploy --only functions` to `stanag-app-dev`, verify in Firebase console logs
 
 ---
 
