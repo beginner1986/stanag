@@ -40,13 +40,13 @@
 - ~~Returns 200 immediately (RevenueCat retries on non-2xx)~~ ✅
 - `premium_until` stored as epoch ms in JWT claim, Firestore Timestamp in `users` doc
 
-### E. Configure webhook in RevenueCat dashboard
-- Paste the Cloud Function HTTPS trigger URL
-- Set the webhook secret (matches `REVENUECAT_WEBHOOK_SECRET` secret)
+### E. Configure webhook in RevenueCat dashboard ✅
+- ~~Paste the Cloud Function HTTPS trigger URL~~ ✅ — `https://revenuecatwebhook-i5cmbborzq-lm.a.run.app`
+- ~~Set the webhook secret (matches `REVENUECAT_WEBHOOK_SECRET` secret)~~ ✅ — webhook named "RevenueCat Dev Webhook", status active
 
-### F. Deploy function
-1. Set the secret: `firebase functions:secrets:set REVENUECAT_WEBHOOK_SECRET` (prompts for value)
-2. `firebase deploy --only functions` to `stanag-app-dev`, verify in Firebase console logs
+### F. Deploy function ✅
+1. ~~Set the secret: `firebase functions:secrets:set REVENUECAT_WEBHOOK_SECRET` (prompts for value)~~ ✅
+2. ~~`firebase deploy --only functions` to `stanag-app-dev`, verify in Firebase console logs~~ ✅ — deployed as Node.js 24 2nd Gen, region `europe-central2`
 
 ---
 
@@ -90,22 +90,28 @@
 - ~~Add `/upgrade` route to `router_provider.dart`~~
 - ~~Add "Upgrade to Premium" button to `SettingsScreen` for `registered_free` and `expired_premium` states (already shows account type — add button below it)~~
 
-### N. Tests (partial) ⚠️
+### N. Tests ✅
 - ~~Unit test `PurchaseService` methods (mock `Purchases` static calls using mocktail or a thin wrapper)~~ — tested via interface mock; no separate service unit test (thin wrapper has no logic to test)
 - ~~Widget test `UpgradeScreen`: renders offering price, tapping subscribe triggers service, success state navigates away~~ — 8 tests covering all paths
-- Unit test Cloud Function webhook handler (mock Firebase Admin SDK, assert correct claims set per event type) — pending Cloud Function track
+- ~~Unit test Cloud Function webhook handler (mock Firebase Admin SDK, assert correct claims set per event type)~~ ✅ — 16 mocha tests in `functions/test/index.spec.js`; uses proxyquire to replace all Firebase deps; covers request validation, all GRANT/REVOKE/no-op event types, and error paths
 
 ---
 
 ## Integration verification (last)
 
-### O. End-to-end test in dev
-1. Run app on Android emulator with `dev` flavor
-2. Complete a purchase using a Google Play test account (sandbox)
-3. Verify RevenueCat dashboard shows the purchase
-4. Verify Cloud Function log shows webhook received and custom claim set
-5. Verify app UI transitions to `registered_premium` without restart (token refresh chain)
-6. Simulate subscription expiry in RevenueCat → verify app drops back to `registered_free`
+### O. End-to-end test in dev ⚠️ (partial)
+1. ~~Run app on Android emulator with `dev` flavor~~ ✅ — app launches, Firebase anonymous auth works, RC SDK connects
+2. ~~Complete a purchase using a Google Play test account (sandbox)~~ — blocked: dev RC project has no Play products (expected); full purchase test deferred to prod
+3. ~~Verify RevenueCat dashboard shows the purchase~~ — deferred to prod
+4. ~~Verify Cloud Function log shows webhook received and custom claim set~~ ✅ (partial) — RC test event (type=TEST) received and returned 200; secret validation confirmed working; full grant/revoke log verification deferred to real purchase
+5. ~~Verify app UI transitions to `registered_premium` without restart (token refresh chain)~~ — deferred to prod
+6. ~~Simulate subscription expiry in RevenueCat → verify app drops back to `registered_free`~~ — deferred to prod
+
+**Notes:**
+- Firestore security rules written (`firestore.rules`) and deployed to `stanag-app-dev` ✅
+- Cloud Run public access enabled on `revenuecatwebhook` ✅
+- Authorization header must include `Bearer ` prefix in RC webhook config ✅
+- Dev webhook secret to be rotated (was exposed); update both Firebase secret and RC dashboard
 
 ---
 

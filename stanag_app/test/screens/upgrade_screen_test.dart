@@ -12,8 +12,6 @@ import 'package:stanag_app/l10n/app_localizations.dart';
 import 'package:stanag_app/providers/auth_provider.dart';
 import 'package:stanag_app/providers/purchase_provider.dart';
 import 'package:stanag_app/screens/upgrade_screen.dart';
-import 'package:stanag_app/services/auth_service.dart';
-import 'package:stanag_app/services/purchase_service.dart';
 import 'package:stanag_app/routes/app_routes.dart';
 import '../mocks/service_mocks.dart';
 
